@@ -1,7 +1,7 @@
 // Configuration for different comparison types
 const COMPARISON_TYPES = {
     importance: {
-        itemLabel: 'items to compare',
+        itemLabel: 'parameters to compare',
         placeholder: 'e.g., Price, Quality, Speed, Reliability',
         sliderLabels: [
             'Much more important',
