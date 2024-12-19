@@ -58,7 +58,7 @@
             </div>
 
             <div class="button-container">
-                <button onclick="startComparison()" class="btn btn-primary">Start Comparison</button>
+                <button class="btn btn-primary" id="startComparisonBtn">Start Comparison</button>
             </div>
         </div>
 
@@ -88,7 +88,11 @@
                     <div class="progress-text"></div>
                 </div>
 
-                <button onclick="submitComparison()" class="btn btn-primary">Continue</button>
+                <div class="comparison-navigation">
+                    <button class="btn" id="prevComparisonBtn" disabled>&larr; Previous</button>
+                    <button class="btn btn-primary" id="submitComparisonBtn">Continue</button>
+                    <button class="btn" id="nextComparisonBtn" disabled>Next &rarr;</button>
+                </div>
             </div>
         </div>
 
@@ -97,8 +101,8 @@
             <h2>Results</h2>
             <div id="resultMatrix"></div>
             <div class="button-container">
-                <button onclick="downloadCSV()" class="btn btn-success">Download Results (CSV)</button>
-                <button onclick="startEvaluation()" class="btn btn-primary">Evaluate Options</button>
+                <button class="btn btn-success" id="downloadCsvBtn">Download Results (CSV)</button>
+                <button class="btn btn-primary" id="startEvaluationBtn">Evaluate Options</button>
             </div>
         </div>
 
@@ -120,7 +124,7 @@
             <h2>Final Rankings</h2>
             <div id="rankingResults"></div>
             <div class="button-container">
-                <button onclick="location.reload()" class="btn btn-primary">Start Over</button>
+                <button class="btn btn-primary" id="startOverBtn">Start Over</button>
             </div>
         </div>
     </div>

@@ -69,6 +69,29 @@ body {
     flex-direction: column;
     align-items: center;
     z-index: 1;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+/* Add styles for future steps */
+.step.future {
+    cursor: not-allowed;
+}
+
+/* Update hover behavior */
+.step:not(.future):hover {
+    color: var(--primary-color);
+}
+
+.step.completed {
+    background-color: transparent;
+    color: var(--text-primary);
+}
+
+.step.completed .step-number {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 .step-number {
@@ -360,4 +383,32 @@ body {
     height: 100%;
     background: var(--primary-color);
     transition: width 0.3s ease;
+}
+
+/* Make sure future steps have muted colors */
+.step.future .step-number {
+    background: white;
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.step.future span {
+    color: var(--text-secondary);
+}
+
+.comparison-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+.comparison-navigation button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn {
+    min-width: 100px;
 } 

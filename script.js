@@ -35,6 +35,14 @@ let elements = [];
 let comparisons = [];
 let currentComparison = 0;
 let matrix = [];
+let currentStep = 1;
+let savedData = {
+    comparisonType: '',
+    elements: [],
+    comparisons: [],
+    options: [],
+    evaluations: []
+};
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
@@ -44,9 +52,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateUILanguage();
 
-    // Add slider event listener
     const slider = document.getElementById('comparisonSlider');
     slider.addEventListener('input', updateSliderSelection);
+
+    // Add button event listeners
+    document.getElementById('startComparisonBtn').addEventListener('click', startComparison);
+    document.getElementById('submitComparisonBtn').addEventListener('click', submitComparison);
+    document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
+    document.getElementById('startEvaluationBtn').addEventListener('click', startEvaluation);
+    document.getElementById('startOverBtn').addEventListener('click', () => location.reload());
+
+    // Make step indicators clickable
+    document.querySelectorAll('.step').forEach((step, index) => {
+        step.addEventListener('click', () => navigateToStep(index + 1));
+    });
+    
+    // Load saved data if it exists
+    loadSavedData();
+    
+    // Initialize step indicators
+    updateStepIndicators();
+
+    // Add comparison navigation listeners
+    document.getElementById('prevComparisonBtn').addEventListener('click', showPreviousComparison);
+    document.getElementById('nextComparisonBtn').addEventListener('click', showNextComparison);
 });
 
 function updateUILanguage() {
@@ -106,22 +135,18 @@ function startComparison() {
     }
 
     currentComparison = 0;
+    savedData.comparisons = []; // Reset comparisons when starting new
+    savedData.comparisonType = document.querySelector('input[name="comparisonType"]:checked').value;
+    savedData.elements = elements;
+    saveToLocalStorage();
+    
+    currentStep = 2;
+    updateStepIndicators();
     
     document.getElementById('setup').style.display = 'none';
     document.getElementById('comparison').style.display = 'block';
-    updateStepIndicator(2);
     
-    // Add progress information
-    const progressInfo = `
-        <div class="comparison-progress">
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
-            </div>
-            <div class="progress-text">0/${comparisons.length} comparisons completed</div>
-        </div>
-    `;
-    document.getElementById('comparison').insertAdjacentHTML('afterbegin', progressInfo);
-    
+    updateComparisonProgress();
     showNextComparison();
 }
 
@@ -148,20 +173,32 @@ function submitComparison() {
     matrix[i][j] = ratio;
     matrix[j][i] = 1/ratio;
     
-    currentComparison++;
+    // Update or add the comparison to savedData
+    const existingComparisonIndex = savedData.comparisons.findIndex(comp => 
+        comp.optionA === elements[i] && comp.optionB === elements[j]
+    );
     
-    // Update progress bar
-    const progressPercentage = (currentComparison / comparisons.length) * 100;
-    const progressFill = document.querySelector('.comparison-progress .progress-fill');
-    const progressText = document.querySelector('.comparison-progress .progress-text');
-    
-    progressFill.style.width = `${progressPercentage}%`;
-    progressText.textContent = `${currentComparison}/${comparisons.length} comparisons completed`;
-    
-    if (currentComparison < comparisons.length) {
-        showNextComparison();
+    if (existingComparisonIndex !== -1) {
+        savedData.comparisons[existingComparisonIndex].value = sliderValue;
     } else {
+        savedData.comparisons.push({
+            optionA: elements[i],
+            optionB: elements[j],
+            value: sliderValue
+        });
+    }
+    
+    saveToLocalStorage();
+    
+    // If we're at the last comparison, move to results
+    if (currentComparison === comparisons.length - 1) {
+        currentStep = 3;
+        updateStepIndicators();
         showResults();
+    } else {
+        // Otherwise, move to next comparison
+        currentComparison++;
+        showCurrentComparison();
     }
 }
 
@@ -170,10 +207,22 @@ function showNextComparison() {
     document.getElementById('optionA').textContent = elements[i];
     document.getElementById('optionB').textContent = elements[j];
     
-    // Reset slider to center
+    // Check if there's an existing comparison
+    const existingComparison = savedData.comparisons.find(comp => 
+        comp.optionA === elements[i] && comp.optionB === elements[j]
+    );
+    
+    // Set slider value based on existing comparison or default to center
     const slider = document.getElementById('comparisonSlider');
-    slider.value = 2;
+    if (existingComparison) {
+        slider.value = existingComparison.value;
+    } else {
+        slider.value = 2;
+    }
+    
     updateSliderSelection();
+    updateComparisonProgress();
+    updateNavigationButtons();
 }
 
 function showResults() {
@@ -284,6 +333,9 @@ function startEvaluation() {
 
     // Add event listener for options input
     optionsInput.addEventListener('input', handleOptionsInput);
+
+    savedData.options = document.getElementById('optionsInput').value.split(',').map(item => item.trim());
+    saveToLocalStorage();
 }
 
 function handleOptionsInput() {
@@ -464,4 +516,248 @@ function displayFinalResults(results) {
 
     html += '</div>';
     document.getElementById('rankingResults').innerHTML = html;
+}
+
+function navigateToStep(step) {
+    if (step <= currentStep) {
+        currentStep = step;
+        updateStepIndicators();
+        
+        switch(step) {
+            case 1:
+                // Reset to setup
+                elements = savedData.elements;
+                document.getElementById('setup').style.display = 'block';
+                document.getElementById('comparison').style.display = 'none';
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('evaluation').style.display = 'none';
+                break;
+                
+            case 2:
+                elements = savedData.elements;
+                matrix = Array(elements.length).fill(0)
+                    .map(() => Array(elements.length).fill(1));
+                
+                // Generate all possible comparisons
+                comparisons = [];
+                for (let i = 0; i < elements.length - 1; i++) {
+                    for (let j = i + 1; j < elements.length; j++) {
+                        comparisons.push([i, j]);
+                    }
+                }
+                
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('comparison').style.display = 'block';
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('evaluation').style.display = 'none';
+                
+                // Restore the last comparison state
+                currentComparison = Math.min(savedData.comparisons.length, comparisons.length - 1);
+                if (savedData.comparisons.length > 0) {
+                    rebuildMatrixFromComparisons();
+                }
+                
+                showCurrentComparison();
+                updateNavigationButtons();
+                break;
+                
+            case 3:
+                if (savedData.comparisons.length > 0) {
+                    // Reset to results
+                    elements = savedData.elements;
+                    matrix = Array(elements.length).fill(0)
+                        .map(() => Array(elements.length).fill(1));
+                    rebuildMatrixFromComparisons();
+                    
+                    document.getElementById('setup').style.display = 'none';
+                    document.getElementById('comparison').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('evaluation').style.display = 'none';
+                    showResults();
+                }
+                break;
+                
+            case 4:
+                if (savedData.comparisons.length > 0) {
+                    elements = savedData.elements;
+                    matrix = Array(elements.length).fill(0)
+                        .map(() => Array(elements.length).fill(1));
+                    rebuildMatrixFromComparisons();
+                    
+                    document.getElementById('setup').style.display = 'none';
+                    document.getElementById('comparison').style.display = 'none';
+                    document.getElementById('results').style.display = 'none';
+                    document.getElementById('evaluation').style.display = 'block';
+                    
+                    if (savedData.options.length > 0) {
+                        document.getElementById('optionsInput').value = savedData.options.join(', ');
+                        createEvaluationMatrix(savedData.options);
+                    }
+                }
+                break;
+        }
+    }
+}
+
+function showCurrentComparison() {
+    const [i, j] = comparisons[currentComparison];
+    document.getElementById('optionA').textContent = elements[i];
+    document.getElementById('optionB').textContent = elements[j];
+    
+    // Check if there's an existing comparison
+    const existingComparison = savedData.comparisons.find(comp => 
+        comp.optionA === elements[i] && comp.optionB === elements[j]
+    );
+    
+    // Set slider value based on existing comparison or default to center
+    const slider = document.getElementById('comparisonSlider');
+    if (existingComparison) {
+        slider.value = existingComparison.value;
+    } else {
+        slider.value = 2;
+    }
+    
+    updateSliderSelection();
+    updateComparisonProgress();
+    updateNavigationButtons();
+}
+
+function showPreviousComparison() {
+    if (currentComparison > 0) {
+        currentComparison--;
+        showCurrentComparison();
+    }
+}
+
+function showNextComparison() {
+    if (currentComparison < comparisons.length - 1) {
+        currentComparison++;
+        showCurrentComparison();
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevComparisonBtn');
+    const nextBtn = document.getElementById('nextComparisonBtn');
+    const submitBtn = document.getElementById('submitComparisonBtn');
+    
+    prevBtn.disabled = currentComparison === 0;
+    nextBtn.disabled = currentComparison === comparisons.length - 1;
+    
+    // Update submit button text based on position
+    if (currentComparison === comparisons.length - 1) {
+        submitBtn.textContent = 'Finish';
+    } else {
+        submitBtn.textContent = 'Continue';
+    }
+}
+
+// Update rebuildMatrixFromComparisons to handle the comparison state better
+function rebuildMatrixFromComparisons() {
+    // Reset matrix
+    matrix = Array(elements.length).fill(0)
+        .map(() => Array(elements.length).fill(1));
+    
+    // Rebuild matrix from saved comparisons
+    savedData.comparisons.forEach(comp => {
+        const i = elements.indexOf(comp.optionA);
+        const j = elements.indexOf(comp.optionB);
+        if (i !== -1 && j !== -1) { // Make sure elements exist
+            const values = [5, 3, 1, 1/3, 1/5];
+            const ratio = values[comp.value];
+            matrix[i][j] = ratio;
+            matrix[j][i] = 1/ratio;
+        }
+    });
+}
+
+// Add this function to update comparison progress
+function updateComparisonProgress() {
+    // Remove any existing progress elements to prevent duplication
+    const existingProgress = document.querySelector('.comparison-progress');
+    if (existingProgress) {
+        existingProgress.remove();
+    }
+
+    const totalComparisons = comparisons.length;
+    const progressPercentage = (currentComparison / totalComparisons) * 100;
+    
+    const progressHTML = `
+        <div class="comparison-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progressPercentage}%"></div>
+            </div>
+            <div class="progress-text">${currentComparison}/${totalComparisons} comparisons completed</div>
+        </div>
+    `;
+    
+    document.querySelector('.comparison-container').insertAdjacentHTML('afterbegin', progressHTML);
+}
+
+function updateStepIndicators() {
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((step, index) => {
+        step.classList.remove('active', 'completed', 'future');
+        if (index + 1 === currentStep) {
+            step.classList.add('active');
+        } else if (index + 1 < currentStep) {
+            step.classList.add('completed');
+        } else {
+            step.classList.add('future');
+        }
+    });
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('pairwiseData', JSON.stringify(savedData));
+}
+
+function loadFromLocalStorage() {
+    const data = localStorage.getItem('pairwiseData');
+    if (data) {
+        savedData = JSON.parse(data);
+        return true;
+    }
+    return false;
+}
+
+function loadSavedData() {
+    if (loadFromLocalStorage()) {
+        switch(currentStep) {
+            case 1:
+                if (savedData.comparisonType) {
+                    document.querySelector(`input[value="${savedData.comparisonType}"]`).checked = true;
+                }
+                if (savedData.elements.length > 0) {
+                    document.getElementById('elements').value = savedData.elements.join(', ');
+                }
+                break;
+            case 2:
+                // Restore comparison progress
+                if (savedData.comparisons.length > 0) {
+                    // Implement restoration of comparison progress
+                }
+                break;
+            case 3:
+                // Restore results
+                if (savedData.comparisons.length > 0) {
+                    displayResults();
+                }
+                break;
+            case 4:
+                // Restore evaluation data
+                if (savedData.options.length > 0) {
+                    document.getElementById('optionsInput').value = savedData.options.join(', ');
+                    displayEvaluationMatrix();
+                }
+                break;
+        }
+    }
+}
+
+function showCurrentSection() {
+    document.getElementById('setup').style.display = currentStep === 1 ? 'block' : 'none';
+    document.getElementById('comparison').style.display = currentStep === 2 ? 'block' : 'none';
+    document.getElementById('results').style.display = currentStep === 3 ? 'block' : 'none';
+    document.getElementById('evaluation').style.display = currentStep === 4 ? 'block' : 'none';
 }
