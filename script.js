@@ -65,19 +65,10 @@ const COMPARISON_TYPES = {
         resultLabel: 'Importance Score',
         downloadFileName: 'importance_comparison_matrix.csv'
     },
-    likelihood: {
-        itemLabel: 'possible outcomes',
-        placeholder: 'e.g., Outcome A, Outcome B, Outcome C',
-        sliderLabels: [
-            'Much more likely',
-            'More likely',
-            'Equally likely',
-            'More likely',
-            'Much more likely'
-        ],
-        question: 'Which is more likely?',
-        resultLabel: 'Likelihood Score',
-        downloadFileName: 'likelihood_comparison_matrix.csv'
+    matrix: {
+        itemLabel: 'matrix file',
+        placeholder: '',
+        downloadFileName: 'comparison_matrix.csv'
     }
 };
 
@@ -132,20 +123,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add comparison navigation listeners
     document.getElementById('prevComparisonBtn').addEventListener('click', showPreviousComparison);
     document.getElementById('nextComparisonBtn').addEventListener('click', showNextComparison);
+
+    // Add new event listeners
+    document.getElementById('matrixFileInput').addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            importComparisonMatrix(e.target.files[0]);
+        }
+    });
+
+    document.getElementById('skipToEvaluationBtn').addEventListener('click', () => {
+        // Hide all sections first
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('comparison').style.display = 'none';
+        document.getElementById('results').style.display = 'none';
+        
+        // Update step indicator
+        currentStep = 4;
+        updateStepIndicators();
+        
+        // Show evaluation section
+        startEvaluation();
+        
+        // Smooth scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 });
 
 function updateUILanguage() {
     const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
-    const typeConfig = COMPARISON_TYPES[selectedType];
     
-    document.getElementById('elementsLabel').textContent = `Enter ${typeConfig.itemLabel}`;
-    document.getElementById('elements').placeholder = typeConfig.placeholder;
+    // Show/hide appropriate input sections
+    const comparisonInput = document.querySelector('.comparison-input');
+    const matrixInput = document.querySelector('.matrix-input');
     
-    const questionEl = document.getElementById('comparisonQuestion');
-    if (questionEl) {
-        questionEl.textContent = typeConfig.question;
+    if (selectedType === 'importance') {
+        comparisonInput.style.display = 'block';
+        matrixInput.style.display = 'none';
+        document.getElementById('startComparisonBtn').textContent = 'Start Comparison';
+    } else {
+        comparisonInput.style.display = 'none';
+        matrixInput.style.display = 'block';
+        document.getElementById('startComparisonBtn').textContent = 'Skip to Evaluation';
     }
-    updateSliderLabels();
 }
 
 function updateSliderLabels() {
@@ -168,43 +187,51 @@ function updateStepIndicator(stepNumber) {
 }
 
 function startComparison() {
-    const elementsInput = document.getElementById('elements').value;
-    elements = elementsInput.split(',')
-        .map(e => e.trim())
-        .filter(e => e.length > 0);
+    const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
+    
+    if (selectedType === 'importance') {
+        const elementsInput = document.getElementById('elements').value;
+        elements = elementsInput.split(',')
+            .map(e => e.trim())
+            .filter(e => e.length > 0);
 
-    if (elements.length < 2) {
-        alert('Please enter at least 2 items to compare');
-        return;
-    }
+        if (elements.length < 2) {
+            alert('Please enter at least 2 items to compare');
+            return;
+        }
 
-    // Initialize matrix
-    matrix = Array(elements.length).fill(0)
-        .map(() => Array(elements.length).fill(1));
+        // Initialize matrix and start comparison process
+        matrix = Array(elements.length).fill(0)
+            .map(() => Array(elements.length).fill(1));
 
-    // Generate all possible pairs
-    comparisons = [];
-    for (let i = 0; i < elements.length - 1; i++) {
-        for (let j = i + 1; j < elements.length; j++) {
-            comparisons.push([i, j]);
+        comparisons = [];
+        for (let i = 0; i < elements.length - 1; i++) {
+            for (let j = i + 1; j < elements.length; j++) {
+                comparisons.push([i, j]);
+            }
+        }
+
+        currentComparison = 0;
+        savedData.comparisons = [];
+        savedData.comparisonType = selectedType;
+        savedData.elements = elements;
+        saveToLocalStorage();
+        
+        currentStep = 2;
+        updateStepIndicators();
+        showSectionForStep(2);
+        
+        showCurrentComparison();
+        updateComparisonProgress();
+    } else {
+        // Handle matrix file if one is selected
+        const fileInput = document.getElementById('matrixFileInput');
+        if (fileInput.files.length > 0) {
+            importComparisonMatrix(fileInput.files[0]);
+        } else {
+            alert('Please select a comparison matrix file');
         }
     }
-
-    currentComparison = 0;
-    savedData.comparisons = []; // Reset comparisons when starting new
-    savedData.comparisonType = document.querySelector('input[name="comparisonType"]:checked').value;
-    savedData.elements = elements;
-    saveToLocalStorage();
-    
-    currentStep = 2;
-    updateStepIndicators();
-    
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('comparison').style.display = 'block';
-    
-    // Show the first comparison immediately
-    showCurrentComparison();
-    updateComparisonProgress();
 }
 
 function updateSliderSelection() {
@@ -251,6 +278,7 @@ function submitComparison() {
     if (currentComparison === comparisons.length - 1) {
         currentStep = 3;
         updateStepIndicators();
+        showSectionForStep(3);
         showResults();
     } else {
         // Otherwise, move to next comparison
@@ -371,19 +399,11 @@ function downloadCSV() {
 }
 
 function startEvaluation() {
-    // Ensure we have the matrix and elements from the previous step
+    // Ensure we have the matrix and elements
     if (!window.savedMatrix || !window.savedElements) {
         window.savedMatrix = matrix;
         window.savedElements = elements;
     }
-
-    // Hide results and show evaluation section
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('evaluation').style.display = 'block';
-    
-    // Set current step to 4 and update indicators
-    currentStep = 4;
-    updateStepIndicators();
 
     // Initialize evaluation data structure if it doesn't exist
     if (!savedData.evaluationData) {
@@ -393,21 +413,27 @@ function startEvaluation() {
         };
     }
 
-    // Restore saved options if they exist, otherwise clear the input
+    // Clear previous input and add event listener
     const optionsInput = document.getElementById('optionsInput');
-    if (savedData.evaluationData.options.length > 0) {
-        optionsInput.value = savedData.evaluationData.options.join(', ');
+    optionsInput.value = savedData.evaluationData.options.join(', '); // Restore any saved options
+    
+    // Remove existing listener to prevent duplicates
+    const oldOptionsInput = optionsInput.cloneNode(true);
+    optionsInput.parentNode.replaceChild(oldOptionsInput, optionsInput);
+    
+    // Add fresh event listener
+    oldOptionsInput.addEventListener('input', handleOptionsInput);
+    
+    // Show evaluation matrix if we have options
+    if (savedData.evaluationData.options.length >= 2) {
         createEvaluationMatrix(savedData.evaluationData.options);
     } else {
-        optionsInput.value = '';
         document.getElementById('evaluationMatrix').innerHTML = 
             '<p class="input-help">Enter your options above to start the evaluation</p>';
     }
-
-    // Remove existing listener to prevent duplicates
-    optionsInput.removeEventListener('input', handleOptionsInput);
-    // Add event listener for options input
-    optionsInput.addEventListener('input', handleOptionsInput);
+    
+    // Update step indicators
+    updateStepIndicators();
 }
 
 function handleOptionsInput() {
@@ -418,14 +444,6 @@ function handleOptionsInput() {
         .filter(opt => opt.length > 0);
 
     if (options.length >= 2) {
-        // Initialize evaluationData if it doesn't exist
-        if (!savedData.evaluationData) {
-            savedData.evaluationData = {
-                options: [],
-                ratings: []
-            };
-        }
-        
         savedData.evaluationData.options = options;
         saveToLocalStorage();
         createEvaluationMatrix(options);
@@ -638,31 +656,7 @@ function displayFinalResults(results) {
 }
 
 function navigateToStep(step) {
-    // Special case for step 4 (evaluation) - allow direct access
-    if (step === 4) {
-        currentStep = 4;
-        updateStepIndicators();
-        
-        // Initialize empty matrix and elements if they don't exist
-        if (!window.savedMatrix || !window.savedElements) {
-            window.savedMatrix = Array(2).fill(0).map(() => Array(2).fill(1));
-            window.savedElements = ['Criterion 1', 'Criterion 2'];
-        }
-        
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('comparison').style.display = 'none';
-        document.getElementById('results').style.display = 'none';
-        document.getElementById('evaluation').style.display = 'block';
-        
-        if (savedData.evaluationData && savedData.evaluationData.options.length > 0) {
-            document.getElementById('optionsInput').value = 
-                savedData.evaluationData.options.join(', ');
-            createEvaluationMatrix(savedData.evaluationData.options);
-        }
-        return;
-    }
-
-    // Normal navigation for other steps
+    // Only allow navigation to current or previous steps
     if (step <= currentStep) {
         currentStep = step;
         updateStepIndicators();
@@ -671,70 +665,67 @@ function navigateToStep(step) {
             case 1:
                 // Reset to setup
                 elements = savedData.elements;
-                document.getElementById('setup').style.display = 'block';
-                document.getElementById('comparison').style.display = 'none';
-                document.getElementById('results').style.display = 'none';
-                document.getElementById('evaluation').style.display = 'none';
+                showSectionForStep(1);
                 break;
                 
             case 2:
-                elements = savedData.elements;
-                matrix = Array(elements.length).fill(0)
-                    .map(() => Array(elements.length).fill(1));
-                
-                // Generate all possible comparisons
-                comparisons = [];
-                for (let i = 0; i < elements.length - 1; i++) {
-                    for (let j = i + 1; j < elements.length; j++) {
-                        comparisons.push([i, j]);
+                if (savedData.elements.length > 0) {
+                    elements = savedData.elements;
+                    matrix = Array(elements.length).fill(0)
+                        .map(() => Array(elements.length).fill(1));
+                    
+                    // Generate all possible comparisons
+                    comparisons = [];
+                    for (let i = 0; i < elements.length - 1; i++) {
+                        for (let j = i + 1; j < elements.length; j++) {
+                            comparisons.push([i, j]);
+                        }
                     }
+                    
+                    showSectionForStep(2);
+                    
+                    // Restore the last comparison state
+                    currentComparison = Math.min(savedData.comparisons.length, comparisons.length - 1);
+                    if (savedData.comparisons.length > 0) {
+                        rebuildMatrixFromComparisons();
+                    }
+                    
+                    showCurrentComparison();
+                    updateNavigationButtons();
+                } else {
+                    // If no elements exist, go back to step 1
+                    navigateToStep(1);
                 }
-                
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('comparison').style.display = 'block';
-                document.getElementById('results').style.display = 'none';
-                document.getElementById('evaluation').style.display = 'none';
-                
-                // Restore the last comparison state
-                currentComparison = Math.min(savedData.comparisons.length, comparisons.length - 1);
-                if (savedData.comparisons.length > 0) {
-                    rebuildMatrixFromComparisons();
-                }
-                
-                showCurrentComparison();
-                updateNavigationButtons();
                 break;
                 
             case 3:
                 if (savedData.comparisons.length > 0) {
-                    // Reset to results
                     elements = savedData.elements;
                     matrix = Array(elements.length).fill(0)
                         .map(() => Array(elements.length).fill(1));
                     rebuildMatrixFromComparisons();
                     
-                    document.getElementById('setup').style.display = 'none';
-                    document.getElementById('comparison').style.display = 'none';
-                    document.getElementById('results').style.display = 'block';
-                    document.getElementById('evaluation').style.display = 'none';
+                    showSectionForStep(3);
                     showResults();
+                } else {
+                    // If no comparisons exist, go back to step 1
+                    navigateToStep(1);
                 }
                 break;
                 
             case 4:
-                // Ensure we preserve the matrix and elements
-                window.savedMatrix = matrix;
-                window.savedElements = elements;
-                
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('comparison').style.display = 'none';
-                document.getElementById('results').style.display = 'none';
-                document.getElementById('evaluation').style.display = 'block';
-                
-                if (savedData.evaluationData && savedData.evaluationData.options.length > 0) {
-                    document.getElementById('optionsInput').value = 
-                        savedData.evaluationData.options.join(', ');
-                    createEvaluationMatrix(savedData.evaluationData.options);
+                if (window.savedMatrix && window.savedElements) {
+                    showSectionForStep(4);
+                    startEvaluation();
+                } else if (savedData.comparisons.length > 0) {
+                    // Use existing comparison data
+                    window.savedMatrix = matrix;
+                    window.savedElements = elements;
+                    showSectionForStep(4);
+                    startEvaluation();
+                } else {
+                    // If no matrix exists, go back to step 1
+                    navigateToStep(1);
                 }
                 break;
         }
@@ -915,4 +906,90 @@ function showCurrentSection() {
     document.getElementById('comparison').style.display = currentStep === 2 ? 'block' : 'none';
     document.getElementById('results').style.display = currentStep === 3 ? 'block' : 'none';
     document.getElementById('evaluation').style.display = currentStep === 4 ? 'block' : 'none';
+}
+
+// Add this function to handle matrix import
+function importComparisonMatrix(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const csvContent = e.target.result;
+            const rows = csvContent.split('\n')
+                .map(row => row.trim())
+                .filter(row => row.length > 0);
+            
+            if (rows.length < 2) {
+                throw new Error('Invalid CSV format: Not enough rows');
+            }
+
+            // Parse header row to get elements (skip last two columns: Score,Percentage)
+            const header = rows[0].split(',');
+            const elements = header.slice(1, -2);
+            
+            // Create and populate the matrix
+            const matrix = Array(elements.length).fill(0)
+                .map(() => Array(elements.length).fill(1));
+            
+            // Parse data rows
+            for (let i = 0; i < elements.length; i++) {
+                const rowData = rows[i + 1].split(',');
+                const values = rowData.slice(1, elements.length + 1)
+                    .map(val => parseFloat(val));
+                
+                if (values.length !== elements.length) {
+                    throw new Error('Invalid CSV format: Incorrect number of columns');
+                }
+                
+                for (let j = 0; j < elements.length; j++) {
+                    matrix[i][j] = values[j];
+                }
+            }
+
+            // Store the imported data and update global state
+            window.savedMatrix = matrix;
+            window.savedElements = elements;
+            window.elements = elements;
+            window.matrix = matrix;
+            
+            // Go directly to evaluation
+            currentStep = 4;
+            updateStepIndicators();
+            showSectionForStep(4);
+            startEvaluation();
+            
+            // Smooth scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+        } catch (error) {
+            alert('Error loading comparison matrix. Please ensure the CSV file matches the expected format.');
+            console.error('Import error:', error);
+        }
+    };
+    reader.readAsText(file);
+}
+
+// Add this helper function to handle section visibility
+function showSectionForStep(step) {
+    // Hide all sections first
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('comparison').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('evaluation').style.display = 'none';
+    document.getElementById('finalResults').style.display = 'none';
+    
+    // Show appropriate section based on step
+    switch(step) {
+        case 1:
+            document.getElementById('setup').style.display = 'block';
+            break;
+        case 2:
+            document.getElementById('comparison').style.display = 'block';
+            break;
+        case 3:
+            document.getElementById('results').style.display = 'block';
+            break;
+        case 4:
+            document.getElementById('evaluation').style.display = 'block';
+            break;
+    }
 }

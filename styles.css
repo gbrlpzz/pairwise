@@ -132,6 +132,7 @@ body {
     padding: 2rem;
     box-shadow: var(--shadow-md);
     margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
 }
 
 /* Input Groups */
@@ -412,4 +413,111 @@ body {
 
 .btn {
     min-width: 100px;
+}
+
+.file-upload {
+    margin-top: 10px;
+}
+
+.file-upload input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.separator {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 2rem);
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.separator::before {
+    left: 0;
+}
+
+.separator::after {
+    right: 0;
+}
+
+.separator span {
+    background-color: white;
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.matrix-upload {
+    background-color: var(--background);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 0;
+    transition: all 0.3s ease;
+}
+
+.matrix-upload .btn {
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.matrix-upload .input-help {
+    transition: color 0.3s ease;
+}
+
+#skipToEvaluationBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#skipToEvaluationBtn:not(:disabled) {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
 } 
+
+/* Add success state styles */
+.matrix-upload.success {
+    background-color: rgba(22, 163, 74, 0.1); /* var(--success-color) with opacity */
+}
+
+.comparison-input,
+.matrix-input {
+    transition: all 0.3s ease;
+}
+
+.matrix-input {
+    background-color: var(--background);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+}
+  

@@ -35,30 +35,38 @@
         <!-- Setup Section -->
         <div id="setup" class="card">
             <div class="input-group">
-                <label>What would you like to compare?</label>
+                <label>How would you like to start?</label>
                 <div class="radio-group">
                     <label class="radio-option">
                         <input type="radio" name="comparisonType" value="importance" checked>
-                        <span class="radio-label">Importance</span>
-                        <span class="radio-help">Compare the relative importance between criteria</span>
+                        <span class="radio-label">New Comparison</span>
+                        <span class="radio-help">Start a fresh comparison between criteria</span>
                     </label>
                     <label class="radio-option">
-                        <input type="radio" name="comparisonType" value="likelihood">
-                        <span class="radio-label">Likelihood</span>
-                        <span class="radio-help">Compare the relative probability between outcomes</span>
+                        <input type="radio" name="comparisonType" value="matrix">
+                        <span class="radio-label">Use Existing Matrix</span>
+                        <span class="radio-help">Upload a previously exported comparison matrix</span>
                     </label>
                 </div>
             </div>
 
-            <div class="input-group">
+            <div class="input-group comparison-input">
                 <label for="elements" id="elementsLabel">Enter criteria to compare</label>
                 <input type="text" id="elements" class="input-field" 
                        placeholder="Enter items separated by commas (e.g., Price, Quality, Speed)">
                 <p class="input-help">Enter at least 2 items to start the comparison</p>
             </div>
 
+            <div class="input-group matrix-input" style="display: none;">
+                <label>Upload your comparison matrix:</label>
+                <div class="file-upload">
+                    <input type="file" id="matrixFileInput" accept=".csv" class="input-field">
+                    <p class="input-help">Select a previously exported comparison matrix CSV file</p>
+                </div>
+            </div>
+
             <div class="button-container">
-                <button class="btn btn-primary" id="startComparisonBtn">Start Comparison</button>
+                <button class="btn btn-primary" id="startComparisonBtn">Continue →</button>
             </div>
         </div>
 
