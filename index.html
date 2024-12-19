@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Decision Matrix | Pairwise Comparison Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Decision Matrix</h1>
+            <p>Make better decisions through pairwise comparisons</p>
+        </header>
+
+        <div class="step-indicator">
+            <div class="step active">
+                <div class="step-number">1</div>
+                <span>Setup</span>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <span>Compare</span>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <span>Results</span>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <span>Evaluate</span>
+            </div>
+        </div>
+
+        <!-- Setup Section -->
+        <div id="setup" class="card">
+            <div class="input-group">
+                <label>What would you like to compare?</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="comparisonType" value="importance" checked>
+                        <span class="radio-label">Importance</span>
+                        <span class="radio-help">Compare the relative importance between items</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="comparisonType" value="likelihood">
+                        <span class="radio-label">Likelihood</span>
+                        <span class="radio-help">Compare the relative probability between outcomes</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="elements" id="elementsLabel">Enter items to compare</label>
+                <input type="text" id="elements" class="input-field" 
+                       placeholder="Enter items separated by commas (e.g., Price, Quality, Speed)">
+                <p class="input-help">Enter at least 2 items to start the comparison</p>
+            </div>
+
+            <div class="button-container">
+                <button onclick="startComparison()" class="btn btn-primary">Start Comparison</button>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div id="comparison" class="card" style="display: none;">
+            <div class="comparison-container">
+                <h2 id="comparisonQuestion">Which is more important?</h2>
+                
+                <div class="comparison-elements">
+                    <div class="element-card" id="optionA"></div>
+                    <div class="element-card" id="optionB"></div>
+                </div>
+
+                <div class="slider-container">
+                    <input type="range" min="0" max="4" value="2" class="slider" id="comparisonSlider">
+                    <div class="slider-labels">
+                        <span id="leftLabel">Much more important</span>
+                        <span id="centerLabel">Equally important</span>
+                        <span id="rightLabel">Much more important</span>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <div class="progress-text"></div>
+                </div>
+
+                <button onclick="submitComparison()" class="btn btn-primary">Continue</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="card" style="display: none;">
+            <h2>Results</h2>
+            <div id="resultMatrix"></div>
+            <div class="button-container">
+                <button onclick="downloadCSV()" class="btn btn-success">Download Results (CSV)</button>
+                <button onclick="startEvaluation()" class="btn btn-primary">Evaluate Options</button>
+            </div>
+        </div>
+
+        <!-- Evaluation Section -->
+        <div id="evaluation" class="card" style="display: none;">
+            <h2>Evaluate Options</h2>
+            <div class="input-group">
+                <label>Enter your options to evaluate:</label>
+                <input type="text" id="optionsInput" class="input-field" 
+                       placeholder="Enter options separated by commas (e.g., Option A, Option B, Option C)">
+                <p class="input-help">Enter at least 2 options to compare</p>
+            </div>
+            
+            <div id="evaluationMatrix"></div>
+        </div>
+
+        <!-- Final Results Section -->
+        <div id="finalResults" class="card" style="display: none;">
+            <h2>Final Rankings</h2>
+            <div id="rankingResults"></div>
+            <div class="button-container">
+                <button onclick="location.reload()" class="btn btn-primary">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
