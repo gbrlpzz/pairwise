@@ -103,7 +103,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('startComparisonBtn').addEventListener('click', startComparison);
     document.getElementById('submitComparisonBtn').addEventListener('click', submitComparison);
     document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
-    document.getElementById('startEvaluationBtn').addEventListener('click', startEvaluation);
+    document.getElementById('startEvaluationBtn').addEventListener('click', () => {
+        // Ensure matrix and elements are saved before starting evaluation
+        window.savedMatrix = matrix;
+        window.savedElements = elements;
+        startEvaluation();
+    });
     document.getElementById('startOverBtn').addEventListener('click', () => {
         localStorage.clear();
         window.onload();
@@ -413,6 +418,11 @@ function startEvaluation() {
         };
     }
 
+    // Update current step and show correct section
+    currentStep = 4;
+    updateStepIndicators();
+    showSectionForStep(4);
+
     // Clear previous input and add event listener
     const optionsInput = document.getElementById('optionsInput');
     optionsInput.value = savedData.evaluationData.options.join(', '); // Restore any saved options
@@ -431,9 +441,6 @@ function startEvaluation() {
         document.getElementById('evaluationMatrix').innerHTML = 
             '<p class="input-help">Enter your options above to start the evaluation</p>';
     }
-    
-    // Update step indicators
-    updateStepIndicators();
 }
 
 function handleOptionsInput() {
