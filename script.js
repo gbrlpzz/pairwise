@@ -1,3 +1,54 @@
+window.onload = function() {
+    // Clear ALL localStorage
+    localStorage.clear();
+    
+    // Reset global variables
+    elements = [];
+    comparisons = [];
+    currentComparison = 0;
+    matrix = [];
+    currentStep = 1;
+    savedData = {
+        comparisonType: '',
+        elements: [],
+        comparisons: [],
+        evaluationData: {
+            options: [],
+            ratings: []
+        }
+    };
+    
+    // Reset all form elements
+    document.querySelectorAll('input').forEach(input => {
+        if (input.type === 'text') {
+            input.value = '';
+        } else if (input.type === 'range') {
+            input.value = '2'; // Reset slider to middle
+        } else if (input.type === 'radio' && input.value === 'importance') {
+            input.checked = true; // Reset to importance as default
+        }
+    });
+    
+    // Reset to first step
+    document.querySelectorAll('.step').forEach((step, index) => {
+        if (index === 0) {
+            step.classList.add('active');
+        } else {
+            step.classList.remove('active');
+        }
+    });
+    
+    // Show only setup section
+    document.getElementById('setup').style.display = 'block';
+    document.getElementById('comparison').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('evaluation').style.display = 'none';
+    document.getElementById('finalResults').style.display = 'none';
+    
+    // Update UI language to match default radio selection
+    updateUILanguage();
+};
+
 // Configuration for different comparison types
 const COMPARISON_TYPES = {
     importance: {
@@ -62,7 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('submitComparisonBtn').addEventListener('click', submitComparison);
     document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
     document.getElementById('startEvaluationBtn').addEventListener('click', startEvaluation);
-    document.getElementById('startOverBtn').addEventListener('click', () => location.reload());
+    document.getElementById('startOverBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.onload();
+    });
 
     // Make step indicators clickable
     document.querySelectorAll('.step').forEach((step, index) => {
