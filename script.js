@@ -148,8 +148,9 @@ function startComparison() {
     document.getElementById('setup').style.display = 'none';
     document.getElementById('comparison').style.display = 'block';
     
+    // Show the first comparison immediately
+    showCurrentComparison();
     updateComparisonProgress();
-    showNextComparison();
 }
 
 function updateSliderSelection() {
@@ -687,6 +688,8 @@ function navigateToStep(step) {
 }
 
 function showCurrentComparison() {
+    if (comparisons.length === 0) return;
+    
     const [i, j] = comparisons[currentComparison];
     document.getElementById('optionA').textContent = elements[i];
     document.getElementById('optionB').textContent = elements[j];
