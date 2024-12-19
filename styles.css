@@ -216,6 +216,7 @@ body {
     border-radius: var(--radius-md);
     text-align: center;
     font-weight: 500;
+    color: var(--text-primary);
 }
 
 /* Slider */
