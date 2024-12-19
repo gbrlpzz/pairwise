@@ -325,7 +325,10 @@ function startEvaluation() {
     // Hide results and show evaluation section
     document.getElementById('results').style.display = 'none';
     document.getElementById('evaluation').style.display = 'block';
-    updateStepIndicator(4);
+    
+    // Set current step to 4 and update indicators
+    currentStep = 4;
+    updateStepIndicators();
 
     // Initialize evaluation data structure if it doesn't exist
     if (!savedData.evaluationData) {
@@ -782,12 +785,6 @@ function updateStepIndicators() {
     const steps = document.querySelectorAll('.step');
     steps.forEach((step, index) => {
         step.classList.remove('active', 'completed', 'future');
-        
-        // Special case for step 4 - mark as active if we're on it
-        if (index === 3 && currentStep === 4) {
-            step.classList.add('active');
-            return;
-        }
         
         if (index + 1 === currentStep) {
             step.classList.add('active');
