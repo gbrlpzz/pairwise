@@ -1,7 +1,5 @@
 # Decision Matrix
 
-![Decision Matrix Banner](path/to/banner.png)
-
 Make complex decisions simple through pairwise comparisons. This elegant web tool helps break down difficult choices into easy-to-manage pairs, guiding you to clearer, more objective decisions.
 
 ## ✨ Why Use Decision Matrix?
@@ -13,12 +11,7 @@ Make complex decisions simple through pairwise comparisons. This elegant web too
 
 ## 🚀 Quick Start
 
-1. Visit [decisionmatrix.com](https://decisionmatrix.com) or run locally:   ```bash
-   git clone https://github.com/yourusername/decision-matrix   ```
-
-2. Open `index.html` in your browser
-
-3. Start making better decisions!
+1. Open `index.html` in your browser
 
 ## 💡 How It Works
 
