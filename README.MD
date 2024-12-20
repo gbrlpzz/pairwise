@@ -59,10 +59,6 @@ The tool uses these key mathematical concepts:
    - Multiplying each rating by the criterion's weight
    - Summing these weighted ratings for each option
 
-## Data Format
-
-Export your results in CSV format for documentation or future use:
-
 ## Usage
 
 1. Visit the tool at https://pairwise-compare.vercel.app/
