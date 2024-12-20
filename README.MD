@@ -1,8 +1,8 @@
-# Decision Matrix
+# Pairwise
 
 Make complex decisions simple through pairwise comparisons. This elegant web tool helps break down difficult choices into easy-to-manage pairs, guiding you to clearer, more objective decisions.
 
-## ✨ Why Use Decision Matrix?
+## ✨ Why Use Pairwise?
 
 - **Simplify Complex Decisions**: Break down overwhelming choices into simple A vs B comparisons
 - **Remove Bias**: Make more objective decisions by comparing items systematically
