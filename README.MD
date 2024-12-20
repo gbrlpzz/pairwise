@@ -2,80 +2,50 @@
 
 ## Overview
 
-Pairwise is a web-based decision-making tool that helps users make systematic comparisons and evaluations through pairwise comparisons and weighted criteria. It implements the Analytic Hierarchy Process (AHP) methodology to break down complex decisions into simpler comparisons.
+Pairwise helps you make complex decisions through systematic comparisons. Using the Analytic Hierarchy Process (AHP) methodology, it breaks down difficult choices into simple pairwise comparisons, leading to clear, data-driven decisions.
 
 🔗 **Try it now: [pairwise-compare.vercel.com](https://pairwise-compare.vercel.com)**
 
-![Pairwise Tool Screenshot](screenshot.png)
+## Privacy First
 
-## Features
+- **100% Client-Side**: All calculations happen in your browser
+- **No Data Collection**: Your decisions stay private
+- **No Account Needed**: Just open and use
+- **Local Storage Only**: Data saved locally in your browser
+- **No External Services**: Zero third-party dependencies
 
-### 1. Flexible Input Methods
-- **New Comparison**: Start fresh by entering criteria to compare
-- **Matrix Import**: Upload previously exported comparison matrices (CSV format)
+## How It Works
 
-### 2. Four-Step Decision Process
+1. **Enter Your Criteria**
+   - List what matters in your decision (e.g., Cost, Quality, Time)
+   - Or import an existing comparison matrix
 
-#### Step 1: Setup
-- Choose between starting a new comparison or using an existing matrix
-- Input criteria for comparison
-- Support for multiple criteria input via comma-separated values
+2. **Make Simple Comparisons**
+   - Compare criteria pairs one at a time
+   - Use an intuitive slider to indicate importance
+   - Get instant visual feedback
 
-#### Step 2: Compare
-- Interactive pairwise comparison interface
-- Intuitive slider-based importance selection
-- Visual feedback for comparison progress
-- Navigation controls (Previous/Next)
-- Real-time validation and feedback
+3. **See Clear Results**
+   - View weighted importance of each criterion
+   - Export results for documentation
+   - Two views: Summary and detailed matrix
 
-#### Step 3: Results
-- Detailed comparison matrix display
-- Importance scores and percentages
-- Two view modes:
-  - Summary view with rankings
-  - Detailed matrix view
-- Export results to CSV
+4. **Evaluate Options**
+   - Rate your options against the weighted criteria
+   - Get data-driven final rankings
+   - Make confident decisions
 
-#### Step 4: Evaluate
-- Input options for evaluation
-- Rate options against weighted criteria
-- 1-5 rating scale with clear guidelines
-- Real-time calculation of final scores
+## Perfect For
 
-### 3. User Interface Features
-- Clean, modern design
-- Progress tracking
-- Responsive layout
-- Interactive tooltips
-- Visual feedback for user actions
-- Keyboard navigation support
-
-### 4. Data Management
-- Automatic saving of progress
-- CSV export functionality
-- Matrix import/export capabilities
-
-## Use Cases
-
-Perfect for:
 - Product Decisions
 - Career Choices
 - Feature Prioritization
 - Investment Decisions
 - Any complex choice with multiple factors
 
-## How to Use
+## Data Format
 
-1. Visit [pairwise-compare.vercel.com](https://pairwise-compare.vercel.com)
-2. Enter your criteria or upload an existing matrix
-3. Complete the comparisons
-4. Review results and export if needed
-5. Evaluate options against your criteria
-6. Get final rankings
-
-## File Format
-
-### CSV Export Format
+Export your results in CSV format for documentation or future use:
 ```csv
 Elements,Criterion1,Criterion2,Criterion3,Score,Percentage
 Criterion1,1,3,0.33,1.44,33.3
@@ -83,32 +53,10 @@ Criterion2,0.33,1,0.2,0.51,11.8
 Criterion3,3,5,1,3.00,54.9
 ```
 
-## Technical Stack
-
-Built with modern web technologies:
-- HTML5
-- CSS3
-- Vanilla JavaScript
-- No external dependencies
-
-### Key Features
-- Responsive design
-- Offline-capable
-- Local storage for progress saving
-- Modern UI with smooth transitions
-- Cross-browser compatibility
-
 ## Browser Support
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Privacy
-
-All calculations are performed client-side, and no data is sent to any server. Your decision data remains private and secure in your browser's local storage.
+Works on all modern browsers (Chrome, Firefox, Safari, Edge)
 
 ## Feedback
 
-For bug reports or feature requests, please visit [pairwise-compare.vercel.com/feedback](https://pairwise-compare.vercel.com/feedback)
+Visit [pairwise-compare.vercel.com/feedback](https://pairwise-compare.vercel.com/feedback) for bug reports or feature requests
