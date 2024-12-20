@@ -510,8 +510,17 @@ function downloadCSV() {
     const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
     const typeConfig = COMPARISON_TYPES[selectedType];
     
-    let csvContent = "Elements," + elements.join(",") + ",Score,Percentage\n";
+    // Update button to show downloading state
+    const downloadBtn = document.getElementById('downloadCsvBtn');
+    downloadBtn.innerHTML = `
+        <div class="spinner-small"></div>
+        <span>Downloading...</span>
+    `;
+    downloadBtn.disabled = true;
+    downloadBtn.classList.remove('success');
 
+    // Create and trigger download
+    let csvContent = "Elements," + elements.join(",") + ",Score,Percentage\n";
     const scores = matrix.map(row => 
         row.reduce((a, b) => a + b, 0) / elements.length
     );
@@ -536,6 +545,16 @@ function downloadCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // Show success state after small delay
+    setTimeout(() => {
+        downloadBtn.innerHTML = `
+            <span class="success-icon-small">✓</span>
+            <span>Download Again</span>
+        `;
+        downloadBtn.classList.add('success');
+        downloadBtn.disabled = false;
+    }, 500);
 }
 
 function startEvaluation() {
