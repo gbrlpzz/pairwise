@@ -119,6 +119,20 @@ function redo() {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('themeToggle');
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+    
     const radioButtons = document.querySelectorAll('input[name="comparisonType"]');
     radioButtons.forEach(radio => {
         radio.addEventListener('change', updateUILanguage);

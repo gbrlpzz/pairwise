@@ -22,6 +22,33 @@
     --spacing-xl: 2rem;
 }
 
+/* Dark theme variables - Updated for better contrast */
+[data-theme="dark"] {
+    /* Adjusted primary colors for better visibility */
+    --primary-color: #60a5fa;
+    --primary-light: #93c5fd;
+    --primary-dark: #3b82f6;
+    
+    /* Increased contrast for success color */
+    --success-color: #4ade80;
+    
+    /* Adjusted background colors for better contrast */
+    --background: #0f172a;  /* Slightly darker background */
+    --surface: #1e293b;    /* Darker surface for better contrast */
+    
+    /* Enhanced text colors for readability */
+    --text-primary: #f8fafc;  /* Brighter white for main text */
+    --text-secondary: #cbd5e1; /* Lighter secondary text for better readability */
+    
+    /* Adjusted border color for better visibility */
+    --border-color: #475569;  /* Lighter border color for better definition */
+    
+    /* Adjusted shadow for dark mode */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+}
+
 /* Base Styles */
 body {
     font-family: 'Inter', sans-serif;
@@ -30,6 +57,7 @@ body {
     background: var(--background);
     margin: 0;
     padding: 20px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -262,6 +290,7 @@ body {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 /* Input Groups */
@@ -285,6 +314,7 @@ body {
     font-size: 1rem;
     transition: all 0.2s ease;
     background: var(--surface);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .input-field:focus {
@@ -315,6 +345,7 @@ body {
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .radio-option:hover:not(:disabled) {
@@ -358,6 +389,7 @@ body {
     border: 1px solid var(--border-color);
     transition: all 0.2s ease;
     box-shadow: var(--shadow-sm);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .element-card.selected {
@@ -1474,5 +1506,285 @@ body {
 .btn.success .success-icon-small {
     transform: scale(1);
     opacity: 1;
+}
+
+/* Add these new styles for the theme toggle */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.theme-toggle {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+    color: var(--text-primary);
+    background: var(--background);
+}
+
+.theme-toggle .sun-icon,
+.theme-toggle .moon-icon {
+    width: 18px;
+    height: 18px;
+    transition: all 0.2s ease;
+}
+
+/* Show/hide icons based on theme */
+[data-theme="dark"] .theme-toggle .sun-icon {
+    display: block;
+}
+
+[data-theme="dark"] .theme-toggle .moon-icon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .sun-icon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .moon-icon {
+    display: block;
+}
+
+/* Add smooth transitions for theme changes */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Update card and input styles for better dark mode contrast */
+.card,
+.input-field,
+.radio-option,
+.element-card {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* Improve dark mode slider track visibility */
+[data-theme="dark"] .slider {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] .slider::-webkit-slider-thumb {
+    box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Add these styles for better dark mode input states */
+[data-theme="dark"] .input-field:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .radio-option:hover:not(:disabled) {
+    background: rgba(96, 165, 250, 0.1);
+    border-color: var(--primary-light);
+}
+
+/* Improve button contrast in dark mode */
+[data-theme="dark"] .btn-primary {
+    background: var(--primary-color);
+    color: var(--surface);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: var(--primary-light);
+}
+
+[data-theme="dark"] .btn-success {
+    background: var(--success-color);
+    color: var(--surface);
+}
+
+/* Improve slider visibility in dark mode */
+[data-theme="dark"] .slider {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] .slider::-webkit-slider-thumb {
+    background: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Improve card and element visibility */
+[data-theme="dark"] .element-card.selected {
+    border-color: var(--primary-color);
+    background: rgba(96, 165, 250, 0.1);
+}
+
+/* Improve step indicator contrast */
+[data-theme="dark"] .step.active .step-number {
+    background: var(--primary-color);
+    color: var(--surface);
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2);
+}
+
+/* Improve theme toggle visibility */
+[data-theme="dark"] .theme-toggle {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Add focus styles for better keyboard navigation */
+[data-theme="dark"] *:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Improve table contrast in dark mode */
+[data-theme="dark"] .result-table th,
+[data-theme="dark"] .evaluation-table th {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .result-table tr:hover td,
+[data-theme="dark"] .evaluation-table tr:hover td {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Improve progress bar visibility */
+[data-theme="dark"] .progress-bar {
+    background: var(--border-color);
+}
+
+[data-theme="dark"] .progress-fill {
+    background: var(--primary-color);
+}
+
+/* Add subtle hover effects for interactive elements */
+[data-theme="dark"] .card:hover,
+[data-theme="dark"] .element-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+/* Add these styles to fix text colors in dark mode */
+[data-theme="dark"] .input-field {
+    color: var(--text-primary);  /* Make input text visible */
+    background: var(--surface);
+}
+
+[data-theme="dark"] .input-field::placeholder {
+    color: var(--text-secondary);  /* Lighter placeholder text */
+}
+
+/* Fix button text colors */
+[data-theme="dark"] .btn {
+    color: var(--text-primary);  /* Default button text color */
+}
+
+[data-theme="dark"] .btn-primary {
+    color: #ffffff;  /* White text for primary buttons */
+}
+
+[data-theme="dark"] .btn-success {
+    color: #ffffff;  /* White text for success buttons */
+}
+
+/* Fix radio button text */
+[data-theme="dark"] .radio-label {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .radio-help {
+    color: var(--text-secondary);
+}
+
+/* Fix GitHub link text */
+[data-theme="dark"] .github-link {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .github-link:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Fix disabled button states */
+[data-theme="dark"] .btn:disabled {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* Fix secondary buttons */
+[data-theme="dark"] .btn-secondary {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background: var(--text-secondary);
+}
+
+/* Fix tab buttons */
+[data-theme="dark"] .tab-button {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .tab-button.active {
+    color: var(--primary-color);
+}
+
+/* Fix slider labels */
+[data-theme="dark"] .slider-labels span {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .slider-labels span.selected {
+    color: var(--text-primary);
+}
+
+/* Fix progress text */
+[data-theme="dark"] .progress-text {
+    color: var(--text-secondary);
+}
+
+/* Fix table text */
+[data-theme="dark"] .result-table td,
+[data-theme="dark"] .evaluation-table td {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .result-table th,
+[data-theme="dark"] .evaluation-table th {
+    color: var(--text-primary);
+}
+
+/* Fix rating inputs */
+[data-theme="dark"] .rating-input {
+    color: var(--text-primary);
+    background: var(--surface);
+}
+
+/* Fix rating help text */
+[data-theme="dark"] .rating-help {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .rating-point {
+    background: var(--surface);
+}
+
+[data-theme="dark"] .rating-point strong {
+    color: var(--primary-color);
+}
+
+[data-theme="dark"] .rating-point span {
+    color: var(--text-secondary);
 }
   
