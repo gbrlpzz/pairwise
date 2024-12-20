@@ -2,7 +2,10 @@ window.onload = function() {
     // Clear ALL localStorage
     localStorage.clear();
     
-    // Reset global variables
+    // Reset global variables but preserve matrix data
+    const savedMatrix = window.savedMatrix;
+    const savedElements = window.savedElements;
+    
     elements = [];
     comparisons = [];
     currentComparison = 0;
@@ -18,32 +21,28 @@ window.onload = function() {
         }
     };
     
+    // Restore matrix data if it exists
+    if (savedMatrix && savedElements) {
+        window.savedMatrix = savedMatrix;
+        window.savedElements = savedElements;
+    }
+    
     // Reset all form elements
     document.querySelectorAll('input').forEach(input => {
         if (input.type === 'text') {
             input.value = '';
         } else if (input.type === 'range') {
-            input.value = '2'; // Reset slider to middle
+            input.value = '2';
         } else if (input.type === 'radio' && input.value === 'importance') {
-            input.checked = true; // Reset to importance as default
+            input.checked = true;
         }
     });
     
     // Reset to first step
-    document.querySelectorAll('.step').forEach((step, index) => {
-        if (index === 0) {
-            step.classList.add('active');
-        } else {
-            step.classList.remove('active');
-        }
-    });
+    updateStepIndicators();
     
     // Show only setup section
-    document.getElementById('setup').style.display = 'block';
-    document.getElementById('comparison').style.display = 'none';
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('evaluation').style.display = 'none';
-    document.getElementById('finalResults').style.display = 'none';
+    showSectionForStep(1);
     
     // Update UI language to match default radio selection
     updateUILanguage();
@@ -152,6 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Smooth scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    document.getElementById('elements').addEventListener('input', function() {
+        validateElements(this);
+    });
 });
 
 function updateUILanguage() {
@@ -220,6 +223,11 @@ function startComparison() {
         savedData.comparisons = [];
         savedData.comparisonType = selectedType;
         savedData.elements = elements;
+        
+        // Clear any existing matrix data
+        window.savedMatrix = null;
+        window.savedElements = null;
+        
         saveToLocalStorage();
         
         currentStep = 2;
@@ -233,7 +241,17 @@ function startComparison() {
         if (fileInput.files.length > 0) {
             importComparisonMatrix(fileInput.files[0]);
         } else {
-            alert('Please select a comparison matrix file');
+            // If no file selected but we have saved matrix data, use that
+            if (window.savedMatrix && window.savedElements) {
+                matrix = window.savedMatrix;
+                elements = window.savedElements;
+                currentStep = 4;
+                updateStepIndicators();
+                showSectionForStep(4);
+                startEvaluation();
+            } else {
+                alert('Please select a comparison matrix file');
+            }
         }
     }
 }
@@ -244,10 +262,42 @@ function updateSliderSelection() {
     const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
     const labels = COMPARISON_TYPES[selectedType].sliderLabels;
     
-    // Update visual feedback based on slider position
-    document.getElementById('leftLabel').style.fontWeight = value < 2 ? '600' : '400';
-    document.getElementById('centerLabel').style.fontWeight = value === 2 ? '600' : '400';
-    document.getElementById('rightLabel').style.fontWeight = value > 2 ? '600' : '400';
+    // Update visual feedback
+    const leftLabel = document.getElementById('leftLabel');
+    const centerLabel = document.getElementById('centerLabel');
+    const rightLabel = document.getElementById('rightLabel');
+    
+    // Reset all styles
+    [leftLabel, centerLabel, rightLabel].forEach(label => {
+        label.style.fontWeight = '400';
+        label.style.transform = 'scale(1)';
+        label.style.color = 'var(--text-secondary)';
+    });
+    
+    // Apply styles based on selection
+    if (value < 2) {
+        leftLabel.style.fontWeight = '600';
+        leftLabel.style.transform = 'scale(1.05)';
+        leftLabel.style.color = 'var(--text-primary)';
+    } else if (value === 2) {
+        centerLabel.style.fontWeight = '600';
+        centerLabel.style.transform = 'scale(1.05)';
+        centerLabel.style.color = 'var(--text-primary)';
+    } else {
+        rightLabel.style.fontWeight = '600';
+        rightLabel.style.transform = 'scale(1.05)';
+        rightLabel.style.color = 'var(--text-primary)';
+    }
+    
+    // Update option cards
+    const optionA = document.getElementById('optionA');
+    const optionB = document.getElementById('optionB');
+    
+    optionA.style.transform = value < 2 ? 'scale(1.05)' : 'scale(1)';
+    optionB.style.transform = value > 2 ? 'scale(1.05)' : 'scale(1)';
+    
+    optionA.style.borderColor = value < 2 ? 'var(--primary-color)' : 'var(--border-color)';
+    optionB.style.borderColor = value > 2 ? 'var(--primary-color)' : 'var(--border-color)';
 }
 
 function submitComparison() {
@@ -288,7 +338,6 @@ function submitComparison() {
         // Otherwise, move to next comparison
         currentComparison++;
         showCurrentComparison();
-        updateComparisonProgress();
     }
 }
 
@@ -408,8 +457,9 @@ function downloadCSV() {
 function startEvaluation() {
     // Ensure we have the matrix and elements
     if (!window.savedMatrix || !window.savedElements) {
-        window.savedMatrix = matrix;
-        window.savedElements = elements;
+        alert('No comparison matrix available. Please complete the comparison first.');
+        navigateToStep(1);
+        return;
     }
 
     // Initialize evaluation data structure if it doesn't exist
@@ -423,7 +473,15 @@ function startEvaluation() {
     // Update current step and show correct section
     currentStep = 4;
     updateStepIndicators();
-    showSectionForStep(4);
+    
+    // Hide all sections first
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('comparison').style.display = 'none';
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('finalResults').style.display = 'none';
+    
+    // Show evaluation section
+    document.getElementById('evaluation').style.display = 'block';
 
     // Clear previous input and add event listener
     const optionsInput = document.getElementById('optionsInput');
@@ -443,10 +501,6 @@ function startEvaluation() {
         document.getElementById('evaluationMatrix').innerHTML = 
             '<p class="input-help">Enter your options above to start the evaluation</p>';
     }
-
-    // Update step indicator to show third section filled
-    const stepIndicator = document.querySelector('.step-indicator');
-    stepIndicator.setAttribute('data-step', 'evaluate');
 }
 
 function handleOptionsInput() {
@@ -471,13 +525,18 @@ function handleRatingChange(input) {
     const option = input.dataset.option;
     const rating = parseFloat(input.value);
     
-    // Validate rating
-    if (!isNaN(rating) && rating >= 1 && rating <= 5) {
-        // Update or add the rating in savedData
-        const existingRatingIndex = savedData.evaluationData.ratings.findIndex(e => 
-            e.criterion === criterion && e.option === option
-        );
-        
+    // Update the rating in savedData
+    const existingRatingIndex = savedData.evaluationData.ratings.findIndex(e => 
+        e.criterion === criterion && e.option === option
+    );
+    
+    if (input.value === '') {
+        input.style.borderColor = 'red';
+        if (existingRatingIndex !== -1) {
+            // Remove invalid rating
+            savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
+        }
+    } else if (!isNaN(rating)) {
         if (existingRatingIndex !== -1) {
             savedData.evaluationData.ratings[existingRatingIndex].rating = rating;
         } else {
@@ -488,34 +547,56 @@ function handleRatingChange(input) {
             });
         }
         
-        saveToLocalStorage();
-        input.style.borderColor = '';
+        input.style.borderColor = (rating >= 1 && rating <= 5) ? 'var(--primary-color)' : 'red';
     } else {
         input.style.borderColor = 'red';
+        if (existingRatingIndex !== -1) {
+            // Remove invalid rating
+            savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
+        }
     }
     
-    // Update progress
-    const totalRatings = window.savedElements.length * savedData.evaluationData.options.length;
-    updateEvaluationProgress(totalRatings);
+    saveToLocalStorage();
+    updateEvaluationProgress();
 }
 
 function createEvaluationMatrix(options) {
     const criteria = window.savedElements;
     const weights = calculateWeights();
-    const totalRatings = options.length * criteria.length;
     
     let html = `
-        <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
+        <div class="rating-help">
+            <h4>Rating Guide</h4>
+            <p>Rate how well each option performs for each criterion:</p>
+            <div class="rating-scale">
+                <div class="rating-point">
+                    <strong>1</strong>
+                    <span>Poor</span>
+                </div>
+                <div class="rating-point">
+                    <strong>2</strong>
+                    <span>Fair</span>
+                </div>
+                <div class="rating-point">
+                    <strong>3</strong>
+                    <span>Good</span>
+                </div>
+                <div class="rating-point">
+                    <strong>4</strong>
+                    <span>Very Good</span>
+                </div>
+                <div class="rating-point">
+                    <strong>5</strong>
+                    <span>Excellent</span>
+                </div>
             </div>
-            <div class="progress-text">0/${totalRatings} ratings completed</div>
         </div>
         
         <table class="evaluation-table">
             <thead>
                 <tr>
-                    <th>Criteria (Weight)</th>
+                    <th>Criteria</th>
+                    <th>Weight</th>
                     ${options.map(opt => `<th>${opt}</th>`).join('')}
                 </tr>
             </thead>
@@ -526,7 +607,9 @@ function createEvaluationMatrix(options) {
             <tr>
                 <td>
                     ${criterion}
-                    <small>(${(weights[i] * 100).toFixed(1)}%)</small>
+                </td>
+                <td>
+                    <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                 </td>
                 ${options.map(opt => {
                     const savedRating = savedData.evaluationData.ratings.find(e => 
@@ -544,8 +627,9 @@ function createEvaluationMatrix(options) {
                                    data-criterion="${criterion}"
                                    data-option="${opt}"
                                    value="${value}"
-                                   onchange="handleRatingChange(this)"
-                                   placeholder="1-5">
+                                   oninput="handleRatingChange(this)"
+                                   placeholder="1-5"
+                                   required>
                         </td>
                     `;
                 }).join('')}
@@ -556,17 +640,6 @@ function createEvaluationMatrix(options) {
         </tbody>
     </table>
 
-    <div class="rating-help">
-        <p>Rate each option from 1 to 5 for each criterion:</p>
-        <ul>
-            <li>1 = Poor</li>
-            <li>2 = Fair</li>
-            <li>3 = Good</li>
-            <li>4 = Very Good</li>
-            <li>5 = Excellent</li>
-        </ul>
-    </div>
-
     <div class="button-container">
         <button onclick="calculateFinalResults()" class="btn btn-primary">
             Calculate Results
@@ -574,7 +647,6 @@ function createEvaluationMatrix(options) {
     </div>`;
 
     document.getElementById('evaluationMatrix').innerHTML = html;
-    updateEvaluationProgress(totalRatings);
 }
 
 function calculateWeights() {
@@ -587,16 +659,19 @@ function calculateWeights() {
     return rowSums.map(sum => sum / total);
 }
 
-function updateEvaluationProgress(totalRatings) {
-    const validInputs = savedData.evaluationData.ratings.length;
-    const progressPercent = (validInputs / totalRatings) * 100;
+function updateEvaluationProgress() {
+    const totalRatings = window.savedElements.length * savedData.evaluationData.options.length;
+    const validRatings = savedData.evaluationData.ratings.filter(r => 
+        r.rating >= 1 && r.rating <= 5
+    ).length;
+    const progressPercent = (validRatings / totalRatings) * 100;
     
     const progressFill = document.querySelector('.progress-fill');
     const progressText = document.querySelector('.progress-text');
-
+    
     if (progressFill && progressText) {
         progressFill.style.width = `${progressPercent}%`;
-        progressText.textContent = `${validInputs}/${totalRatings} ratings completed`;
+        progressText.textContent = `${validRatings}/${totalRatings} valid ratings`;
     }
 }
 
@@ -647,11 +722,13 @@ function calculateFinalResults() {
 }
 
 function displayFinalResults(results) {
+    const finalResultsSection = document.getElementById('finalResults');
+    finalResultsSection.style.position = 'relative';  // Remove any sticky positioning
+    finalResultsSection.style.display = 'block';
     document.getElementById('evaluation').style.display = 'none';
-    document.getElementById('finalResults').style.display = 'block';
 
     const maxScore = Math.max(...results.map(r => r.score));
-    let html = '<div class="final-rankings">';
+    let html = '<div class="final-rankings" style="position: relative;">';  // Ensure relative positioning
     
     results.forEach((result, index) => {
         const percentage = (result.score / maxScore) * 100;
@@ -673,76 +750,57 @@ function displayFinalResults(results) {
 }
 
 function navigateToStep(step) {
-    // Only allow navigation to current or previous steps
     if (step <= currentStep) {
         currentStep = step;
         updateStepIndicators();
         
+        // Reset display of all sections first
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('comparison').style.display = 'none';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('evaluation').style.display = 'none';
+        document.getElementById('finalResults').style.display = 'none';
+        
         switch(step) {
             case 1:
-                // Reset to setup
-                elements = savedData.elements;
-                showSectionForStep(1);
+                document.getElementById('setup').style.display = 'block';
                 break;
                 
             case 2:
-                if (savedData.elements.length > 0) {
+                if (savedData.elements && savedData.elements.length > 0) {
                     elements = savedData.elements;
-                    matrix = Array(elements.length).fill(0)
-                        .map(() => Array(elements.length).fill(1));
-                    
-                    // Generate all possible comparisons
                     comparisons = [];
                     for (let i = 0; i < elements.length - 1; i++) {
                         for (let j = i + 1; j < elements.length; j++) {
                             comparisons.push([i, j]);
                         }
                     }
-                    
-                    showSectionForStep(2);
-                    
-                    // Restore the last comparison state
-                    currentComparison = Math.min(savedData.comparisons.length, comparisons.length - 1);
-                    if (savedData.comparisons.length > 0) {
-                        rebuildMatrixFromComparisons();
-                    }
-                    
+                    currentComparison = Math.min(
+                        savedData.comparisons.length, 
+                        comparisons.length - 1
+                    );
+                    document.getElementById('comparison').style.display = 'block';
                     showCurrentComparison();
-                    updateNavigationButtons();
                 } else {
-                    // If no elements exist, go back to step 1
                     navigateToStep(1);
                 }
                 break;
                 
             case 3:
-                if (savedData.comparisons.length > 0) {
-                    elements = savedData.elements;
-                    matrix = Array(elements.length).fill(0)
-                        .map(() => Array(elements.length).fill(1));
-                    rebuildMatrixFromComparisons();
-                    
-                    showSectionForStep(3);
+                if (savedData.comparisons && savedData.comparisons.length > 0) {
+                    document.getElementById('results').style.display = 'block';
                     showResults();
                 } else {
-                    // If no comparisons exist, go back to step 1
-                    navigateToStep(1);
+                    navigateToStep(2);
                 }
                 break;
                 
             case 4:
                 if (window.savedMatrix && window.savedElements) {
-                    showSectionForStep(4);
-                    startEvaluation();
-                } else if (savedData.comparisons.length > 0) {
-                    // Use existing comparison data
-                    window.savedMatrix = matrix;
-                    window.savedElements = elements;
-                    showSectionForStep(4);
+                    document.getElementById('evaluation').style.display = 'block';
                     startEvaluation();
                 } else {
-                    // If no matrix exists, go back to step 1
-                    navigateToStep(1);
+                    navigateToStep(3);
                 }
                 break;
         }
@@ -771,7 +829,16 @@ function showCurrentComparison() {
     
     updateSliderSelection();
     updateNavigationButtons();
-    updateComparisonProgress();
+    
+    // Update progress bar
+    const progressPercent = ((currentComparison) / comparisons.length) * 100;
+    const progressFill = document.querySelector('.comparison-container .progress-fill');
+    const progressText = document.querySelector('.comparison-container .progress-text');
+    
+    if (progressFill && progressText) {
+        progressFill.style.width = `${progressPercent}%`;
+        progressText.textContent = `${currentComparison}/${comparisons.length} comparisons completed`;
+    }
 }
 
 function showPreviousComparison() {
@@ -825,6 +892,11 @@ function rebuildMatrixFromComparisons() {
 
 function updateStepIndicators() {
     const steps = document.querySelectorAll('.step');
+    const stepIndicator = document.querySelector('.step-indicator');
+    
+    // Update step indicator data attribute
+    stepIndicator.setAttribute('data-step', currentStep.toString());
+    
     steps.forEach((step, index) => {
         step.classList.remove('active', 'completed', 'future');
         
@@ -836,12 +908,6 @@ function updateStepIndicators() {
             step.classList.add('future');
         }
     });
-
-    // Reset to normal step if going backwards
-    const stepIndicator = document.querySelector('.step-indicator');
-    if (currentStep < 4) {
-        stepIndicator.setAttribute('data-step', currentStep.toString());
-    }
 }
 
 function saveToLocalStorage() {
@@ -910,6 +976,16 @@ function showCurrentSection() {
 
 // Add this function to handle matrix import
 function importComparisonMatrix(file) {
+    // Show loading state
+    const uploadSection = document.querySelector('.matrix-input');
+    const originalContent = uploadSection.innerHTML;
+    uploadSection.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Importing matrix file...</p>
+        </div>
+    `;
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -945,23 +1021,37 @@ function importComparisonMatrix(file) {
                 }
             }
 
-            // Store the imported data and update global state
+            // Store the imported data globally
             window.savedMatrix = matrix;
             window.savedElements = elements;
-            window.elements = elements;
-            window.matrix = matrix;
             
-            // Go directly to evaluation
-            currentStep = 4;
-            updateStepIndicators();
-            showSectionForStep(4);
-            startEvaluation();
+            // Show success state
+            uploadSection.innerHTML = `
+                <div class="success-state">
+                    <div class="success-icon">✓</div>
+                    <p>Matrix imported successfully!</p>
+                </div>
+            `;
             
-            // Smooth scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // After 1.5 seconds, proceed to evaluation
+            setTimeout(() => {
+                currentStep = 4;
+                updateStepIndicators();
+                showSectionForStep(4);
+                startEvaluation();
+            }, 1500);
             
         } catch (error) {
-            alert('Error loading comparison matrix. Please ensure the CSV file matches the expected format.');
+            // Show error state and restore original content after 3 seconds
+            uploadSection.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">!</div>
+                    <p>Error: ${error.message}</p>
+                </div>
+            `;
+            setTimeout(() => {
+                uploadSection.innerHTML = originalContent;
+            }, 3000);
             console.error('Import error:', error);
         }
     };
@@ -970,27 +1060,25 @@ function importComparisonMatrix(file) {
 
 // Add this helper function to handle section visibility
 function showSectionForStep(step) {
-    // Hide all sections first
-    document.getElementById('setup').style.display = 'none';
-    document.getElementById('comparison').style.display = 'none';
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('evaluation').style.display = 'none';
-    document.getElementById('finalResults').style.display = 'none';
+    const sections = {
+        1: 'setup',
+        2: 'comparison',
+        3: 'results',
+        4: 'evaluation',
+        5: 'finalResults'  // Add final results section
+    };
     
-    // Show appropriate section based on step
-    switch(step) {
-        case 1:
-            document.getElementById('setup').style.display = 'block';
-            break;
-        case 2:
-            document.getElementById('comparison').style.display = 'block';
-            break;
-        case 3:
-            document.getElementById('results').style.display = 'block';
-            break;
-        case 4:
-            document.getElementById('evaluation').style.display = 'block';
-            break;
+    Object.values(sections).forEach(id => {
+        const section = document.getElementById(id);
+        if (section) {
+            section.style.display = 'none';
+            section.style.position = 'relative';  // Reset positioning
+        }
+    });
+    
+    const targetSection = document.getElementById(sections[step]);
+    if (targetSection) {
+        targetSection.style.display = 'block';
     }
 }
 
@@ -1006,5 +1094,32 @@ function updateComparisonProgress() {
     if (progressFill && progressText) {
         progressFill.style.width = `${progressPercentage}%`;
         progressText.textContent = `${currentProgress}/${totalComparisons} comparisons completed`;
+    }
+}
+
+// Add input validation and real-time feedback
+function validateElements(input) {
+    const elements = input.value.split(',')
+        .map(e => e.trim())
+        .filter(e => e.length > 0);
+    
+    const helpText = input.parentElement.querySelector('.input-help') || 
+        document.createElement('p');
+    helpText.className = 'input-help';
+    
+    if (elements.length < 2) {
+        helpText.textContent = 'Please enter at least 2 items separated by commas';
+        helpText.style.color = '#ef4444';
+        input.style.borderColor = '#ef4444';
+        return false;
+    } else {
+        helpText.textContent = `${elements.length} items entered`;
+        helpText.style.color = '#10b981';
+        input.style.borderColor = '#10b981';
+        return true;
+    }
+    
+    if (!input.parentElement.querySelector('.input-help')) {
+        input.parentElement.appendChild(helpText);
     }
 }
