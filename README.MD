@@ -59,4 +59,4 @@ Works on all modern browsers (Chrome, Firefox, Safari, Edge)
 
 ## Feedback
 
-Visit [pairwise-compare.vercel.com/feedback](https://pairwise-compare.vercel.com/feedback) for bug reports or feature requests
+Coming soon
