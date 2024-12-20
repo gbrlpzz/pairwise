@@ -622,15 +622,16 @@ function createEvaluationMatrix(options) {
             </div>
         </div>
         
-        <table class="evaluation-table">
-            <thead>
-                <tr>
-                    <th>Criteria</th>
-                    <th>Weight</th>
-                    ${options.map(opt => `<th>${opt}</th>`).join('')}
-                </tr>
-            </thead>
-            <tbody>`;
+        <div class="table-wrapper">
+            <table class="evaluation-table">
+                <thead>
+                    <tr>
+                        <th>Criteria</th>
+                        <th>Weight</th>
+                        ${options.map(opt => `<th>${opt}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>`;
 
     criteria.forEach((criterion, i) => {
         html += `
@@ -669,6 +670,7 @@ function createEvaluationMatrix(options) {
     html += `
         </tbody>
     </table>
+    </div>
 
     <div class="button-container">
         <button onclick="calculateFinalResults()" class="btn btn-primary">

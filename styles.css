@@ -35,6 +35,7 @@ body {
 .container {
     max-width: 800px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
 /* Header */
@@ -172,6 +173,10 @@ body {
     border: 1px solid var(--border-color);
     margin-bottom: 1.5rem;
     transition: transform 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Input Groups */
@@ -187,6 +192,8 @@ body {
 
 .input-field {
     width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -401,9 +408,10 @@ body {
 /* Buttons */
 .button-container {
     display: flex;
-    justify-content: center;
+    flex-wrap: wrap;
     gap: 1rem;
     margin-top: 2rem;
+    justify-content: center;
 }
 
 .btn {
@@ -434,6 +442,9 @@ body {
 /* Results Table */
 .result-table {
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    display: block;
     border-collapse: separate;
     border-spacing: 0;
     background: var(--surface);
@@ -498,6 +509,8 @@ body {
 /* Evaluation Matrix */
 .evaluation-matrix {
     margin: 2rem 0;
+    width: 100%;
+    min-width: 0;
 }
 
 .evaluation-table {
@@ -506,9 +519,9 @@ body {
     border-spacing: 0;
     background: var(--surface);
     border-radius: var(--radius-lg);
-    overflow: hidden;
     box-shadow: var(--shadow-md);
     margin: 2rem 0;
+    overflow: visible;
 }
 
 .evaluation-table th {
@@ -520,7 +533,9 @@ body {
 }
 
 .evaluation-table td {
-    padding: 1rem;
+    padding: 0.75rem;
+    min-width: 100px;
+    box-sizing: border-box;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s ease;
 }
@@ -534,8 +549,9 @@ body {
 }
 
 .rating-input {
-    width: 80px;
-    padding: 0.75rem;
+    width: 60px;
+    padding: 0.5rem;
+    box-sizing: border-box;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     text-align: center;
@@ -569,16 +585,16 @@ body {
 }
 
 .rating-scale {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.5rem;
     margin-top: 1rem;
 }
 
 .rating-point {
-    flex: 1;
+    padding: 0.75rem;
+    min-width: 0;
     text-align: center;
-    padding: 1rem;
     background: var(--surface);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
@@ -599,12 +615,19 @@ body {
 /* Final Rankings */
 .ranking-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
     padding: 1rem;
     margin: 0.5rem 0;
     background: var(--background);
     border-radius: var(--radius-md);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ranking-details {
+    flex: 1;
+    min-width: 200px;
 }
 
 .ranking-score {
@@ -1148,5 +1171,28 @@ body {
 @keyframes skeleton-loading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
+}
+
+/* Add responsive padding for smaller screens */
+@media (max-width: 600px) {
+    .card {
+        padding: var(--spacing-md);
+    }
+    
+    .button-container {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+/* Add wrapper for horizontal scrolling if needed */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    padding: 1px;
 }
   
