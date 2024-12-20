@@ -227,7 +227,6 @@ function startComparison() {
         showSectionForStep(2);
         
         showCurrentComparison();
-        updateComparisonProgress();
     } else {
         // Handle matrix file if one is selected
         const fileInput = document.getElementById('matrixFileInput');
@@ -289,6 +288,7 @@ function submitComparison() {
         // Otherwise, move to next comparison
         currentComparison++;
         showCurrentComparison();
+        updateComparisonProgress();
     }
 }
 
@@ -311,7 +311,6 @@ function showNextComparison() {
     }
     
     updateSliderSelection();
-    updateComparisonProgress();
     updateNavigationButtons();
 }
 
@@ -771,8 +770,8 @@ function showCurrentComparison() {
     }
     
     updateSliderSelection();
-    updateComparisonProgress();
     updateNavigationButtons();
+    updateComparisonProgress();
 }
 
 function showPreviousComparison() {
@@ -822,29 +821,6 @@ function rebuildMatrixFromComparisons() {
             matrix[j][i] = 1/ratio;
         }
     });
-}
-
-// Add this function to update comparison progress
-function updateComparisonProgress() {
-    // Remove any existing progress elements to prevent duplication
-    const existingProgress = document.querySelector('.comparison-progress');
-    if (existingProgress) {
-        existingProgress.remove();
-    }
-
-    const totalComparisons = comparisons.length;
-    const progressPercentage = (currentComparison / totalComparisons) * 100;
-    
-    const progressHTML = `
-        <div class="comparison-progress">
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${progressPercentage}%"></div>
-            </div>
-            <div class="progress-text">${currentComparison}/${totalComparisons} comparisons completed</div>
-        </div>
-    `;
-    
-    document.querySelector('.comparison-container').insertAdjacentHTML('afterbegin', progressHTML);
 }
 
 function updateStepIndicators() {
@@ -1015,5 +991,20 @@ function showSectionForStep(step) {
         case 4:
             document.getElementById('evaluation').style.display = 'block';
             break;
+    }
+}
+
+// Add this function to update the comparison progress bar
+function updateComparisonProgress() {
+    const totalComparisons = comparisons.length;
+    const currentProgress = currentComparison;
+    const progressPercentage = (currentProgress / totalComparisons) * 100;
+    
+    const progressFill = document.querySelector('.comparison-container .progress-fill');
+    const progressText = document.querySelector('.comparison-container .progress-text');
+    
+    if (progressFill && progressText) {
+        progressFill.style.width = `${progressPercentage}%`;
+        progressText.textContent = `${currentProgress}/${totalComparisons} comparisons completed`;
     }
 }
