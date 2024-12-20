@@ -6,8 +6,6 @@ Pairwise is a web-based decision-making tool that helps users make systematic co
 
 🔗 **Try it now: [pairwise-compare.vercel.com](https://pairwise-compare.vercel.com)**
 
-![Pairwise Tool Screenshot](screenshot.png)
-
 ## Features
 
 ### 1. Flexible Input Methods
