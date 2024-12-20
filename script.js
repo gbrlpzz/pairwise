@@ -397,10 +397,6 @@ function showResults() {
     document.getElementById('comparison').style.display = 'none';
     document.getElementById('results').style.display = 'block';
     
-    // Make sure to update the step indicator
-    const stepIndicator = document.querySelector('.step-indicator');
-    stepIndicator.setAttribute('data-step', '3');
-    
     // Calculate scores
     const scores = matrix.map(row => 
         row.reduce((a, b) => a + b, 0) / elements.length
@@ -410,46 +406,104 @@ function showResults() {
     const totalScore = scores.reduce((a, b) => a + b, 0);
     const percentages = scores.map(score => (score / totalScore) * 100);
 
-    // Create results table
-    let html = '<table class="result-table"><tr><th></th>';
-    elements.forEach(e => {
-        html += `<th>${e}</th>`;
-    });
-    html += '<th>Score</th><th>Percentage</th></tr>';
-
-    for (let i = 0; i < elements.length; i++) {
-        html += `<tr><th>${elements[i]}</th>`;
-        for (let j = 0; j < elements.length; j++) {
-            html += `<td>${matrix[i][j].toFixed(2)}</td>`;
-        }
-        html += `<td>${scores[i].toFixed(2)}</td>`;
-        html += `<td>${percentages[i].toFixed(1)}%</td></tr>`;
-    }
-    html += '</table>';
-
-    // Add ranked summary
+    // Create ranked results array
     const rankedResults = elements.map((element, index) => ({
         element,
         score: scores[index],
         percentage: percentages[index]
     })).sort((a, b) => b.percentage - a.percentage);
 
-    html += '<h3>Ranking</h3><ul class="summary-list">';
-    rankedResults.forEach((result, index) => {
-        html += `
-            <li>
-                <span><strong>#${index + 1}:</strong> ${result.element}</span>
-                <div style="display: flex; align-items: center;">
-                    <span>${result.percentage.toFixed(1)}%</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${result.percentage}%"></div>
-                    </div>
-                </div>
-            </li>`;
-    });
-    html += '</ul>';
+    // Store the matrix and elements before moving to evaluation
+    window.savedMatrix = matrix;
+    window.savedElements = elements;
 
-    document.getElementById('resultMatrix').innerHTML = html;
+    // Generate HTML
+    let html = `
+        <div class="results-header">
+            <h2>Comparison Results</h2>
+            <p>Here are your comparison results ranked by importance</p>
+        </div>
+
+        <div class="results-tabs">
+            <button class="tab-button active" onclick="showResultsTab('summary')">Summary</button>
+            <button class="tab-button" onclick="showResultsTab('details')">Detailed Matrix</button>
+        </div>
+
+        <div id="summary-tab" class="results-summary">
+            <ul class="summary-list">
+                ${rankedResults.map((result, index) => `
+                    <li>
+                        <span class="ranking-position">#${index + 1}</span>
+                        <div class="ranking-details">
+                            <h3>${result.element}</h3>
+                            <div class="score-container">
+                                <div class="score-bar-container">
+                                    <div class="score-bar" style="width: ${result.percentage}%"></div>
+                                </div>
+                                <span class="score-value">${result.percentage.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+
+        <div id="details-tab" class="detailed-results" style="display: none;">
+            <div class="results-wrapper">
+                <table class="result-table">
+                    <tr>
+                        <th></th>
+                        ${elements.map(e => `<th>${e}</th>`).join('')}
+                        <th>Score</th>
+                        <th>Percentage</th>
+                    </tr>
+                    ${elements.map((element, i) => `
+                        <tr>
+                            <th>${element}</th>
+                            ${matrix[i].map(value => `<td>${value.toFixed(2)}</td>`).join('')}
+                            <td>${scores[i].toFixed(2)}</td>
+                            <td>${percentages[i].toFixed(1)}%</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <button class="btn btn-success" id="downloadCsvBtn">
+                <span class="btn-icon">↓</span>
+                Download Results (CSV)
+            </button>
+            <button class="btn btn-primary" onclick="startEvaluation()">
+                Continue to Evaluation
+                <span class="btn-icon">→</span>
+            </button>
+        </div>
+    `;
+
+    document.getElementById('results').innerHTML = html;
+
+    // Re-attach event listener for download button
+    document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
+
+    // Update step indicator to show third step completion
+    const stepIndicator = document.querySelector('.step-indicator');
+    stepIndicator.setAttribute('data-step', '3');
+}
+
+// Add this function to handle tab switching
+function showResultsTab(tabName) {
+    // Update tab buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Show/hide content
+    document.getElementById('summary-tab').style.display = 
+        tabName === 'summary' ? 'block' : 'none';
+    document.getElementById('details-tab').style.display = 
+        tabName === 'details' ? 'block' : 'none';
 }
 
 function downloadCSV() {
@@ -531,6 +585,9 @@ function startEvaluation() {
         document.getElementById('evaluationMatrix').innerHTML = 
             '<p class="input-help">Enter your options above to start the evaluation</p>';
     }
+
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function handleOptionsInput() {
@@ -940,6 +997,11 @@ function updateStepIndicators() {
             step.classList.add('future');
         }
     });
+
+    // If we're on the results page, mark the third step as completed
+    if (currentStep === 3 || currentStep === 4) {
+        steps[2].classList.add('completed');
+    }
 }
 
 function saveToLocalStorage() {
