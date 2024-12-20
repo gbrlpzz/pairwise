@@ -44,8 +44,6 @@ The process happens in 4 steps:
 
 ### The Math Behind It
 
-The tool uses these key mathematical concepts:
-
 1. **Pairwise Comparison Matrix**: Your comparisons create a matrix where:
    - Each element represents the relative importance of criterion i compared to criterion j
    - If criterion A is 3 times more important than B, then B is 1/3 as important as A
