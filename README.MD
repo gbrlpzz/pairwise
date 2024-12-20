@@ -2,6 +2,14 @@
 
 A web-based tool for making complex decisions using the Analytic Hierarchy Process (AHP) through pairwise comparisons.
 
+## Privacy-First Decision Making
+
+- **100% Client-Side**: All calculations happen in your browser
+- **Zero Data Collection**: Your decisions stay completely private
+- **No Account Required**: Just open and use
+- **Local Storage Only**: Data saved locally in your browser
+- **No External Dependencies**: Zero third-party services or tracking
+
 ## About
 
 This tool helps you make better decisions by breaking down complex choices into simple comparisons. It uses the Analytic Hierarchy Process (AHP), a structured method for organizing and analyzing complex decisions.
@@ -26,6 +34,14 @@ The process happens in 4 steps:
    - Rate how well each option performs for each criterion
    - Get a final weighted score that accounts for both criteria importance and option performance
 
+### Perfect For
+
+- Product Decisions
+- Career Choices
+- Feature Prioritization
+- Investment Decisions
+- Any complex choice with multiple factors
+
 ### The Math Behind It
 
 The tool uses these key mathematical concepts:
@@ -42,6 +58,10 @@ The tool uses these key mathematical concepts:
 3. **Final Scores**: Options are scored by:
    - Multiplying each rating by the criterion's weight
    - Summing these weighted ratings for each option
+
+## Data Format
+
+Export your results in CSV format for documentation or future use:
 
 ## Usage
 
