@@ -45,7 +45,7 @@ The tool uses these key mathematical concepts:
 
 ## Usage
 
-1. Visit the tool at [URL]
+1. Visit the tool at https://pairwise-compare.vercel.app/
 2. Choose between starting a new comparison or uploading an existing matrix
 3. Follow the step-by-step process
 4. Download your results or continue to evaluate options
