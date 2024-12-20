@@ -40,21 +40,26 @@ body {
 
 /* Header */
 .header {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
+    text-align: left;
+    margin-bottom: 2.5rem;
+    padding: 1rem 1.5rem;
     position: relative;
     background: var(--surface);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
 }
 
-.brand {
-    display: inline-flex;
+.header-content {
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .logo {
@@ -66,37 +71,62 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 600;
-    font-size: 1rem;
     position: relative;
-    overflow: hidden;
+    transition: all 0.2s ease;
 }
 
-.logo::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+.logo:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.logo svg {
+    width: 18px;
+    height: 18px;
 }
 
 .brand-name {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 600;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--text-primary);
     letter-spacing: -0.5px;
+}
+
+.brand-divider {
+    color: var(--border-color);
+    font-size: 1.25rem;
+    margin: 0 0.5rem;
 }
 
 .header p {
     color: var(--text-secondary);
-    font-size: 1rem;
-    max-width: 400px;
-    margin: 0 auto;
-    line-height: 1.5;
+    font-size: 0.875rem;
+    margin: 0;
+    font-weight: 500;
+}
+
+.github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-full);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.github-link:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.github-link svg {
+    width: 14px;
+    height: 14px;
 }
 
 .header-accent {
@@ -104,12 +134,11 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 1px;
     background: linear-gradient(90deg, 
-        var(--primary-light) 0%, 
-        var(--primary-color) 50%, 
-        var(--primary-dark) 100%);
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        var(--background) 0%, 
+        var(--border-color) 50%, 
+        var(--background) 100%);
 }
 
 /* Step Indicator */
