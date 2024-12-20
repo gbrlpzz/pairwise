@@ -4,7 +4,7 @@
 
 Pairwise helps you make complex decisions through systematic comparisons. Using the Analytic Hierarchy Process (AHP) methodology, it breaks down difficult choices into simple pairwise comparisons, leading to clear, data-driven decisions.
 
-🔗 **Try it now: [pairwise-compare.vercel.com](https://pairwise-compare.vercel.com)**
+🔗 **Try it now: [pairwise-compare.vercel.app](https://pairwise-compare.vercel.app)**
 
 ## Privacy First
 
