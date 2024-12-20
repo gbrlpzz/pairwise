@@ -1,62 +1,67 @@
 # Pairwise Comparison Tool
 
-## Overview
+A web-based tool for making complex decisions using the Analytic Hierarchy Process (AHP) through pairwise comparisons.
 
-Pairwise helps you make complex decisions through systematic comparisons. Using the Analytic Hierarchy Process (AHP) methodology, it breaks down difficult choices into simple pairwise comparisons, leading to clear, data-driven decisions.
+## About
 
-🔗 **Try it now: [pairwise-compare.vercel.app](https://pairwise-compare.vercel.app)**
+This tool helps you make better decisions by breaking down complex choices into simple comparisons. It uses the Analytic Hierarchy Process (AHP), a structured method for organizing and analyzing complex decisions.
 
-## Privacy First
+### How It Works
 
-- **100% Client-Side**: All calculations happen in your browser
-- **No Data Collection**: Your decisions stay private
-- **No Account Needed**: Just open and use
-- **Local Storage Only**: Data saved locally in your browser
-- **No External Services**: Zero third-party dependencies
+The process happens in 4 steps:
 
-## How It Works
+1. **Setup**: Enter the criteria that matter for your decision (e.g., Price, Quality, Speed)
 
-1. **Enter Your Criteria**
-   - List what matters in your decision (e.g., Cost, Quality, Time)
-   - Or import an existing comparison matrix
+2. **Compare**: Make pairwise comparisons between criteria to establish their relative importance
+   - Compare two criteria at a time
+   - Use a slider to indicate which is more important and by how much
+   - The tool will guide you through all necessary comparisons
 
-2. **Make Simple Comparisons**
-   - Compare criteria pairs one at a time
-   - Use an intuitive slider to indicate importance
-   - Get instant visual feedback
+3. **Results**: View the weighted importance of each criterion
+   - See how your comparisons translate into percentage weights
+   - Download the comparison matrix for future use
 
-3. **See Clear Results**
-   - View weighted importance of each criterion
-   - Export results for documentation
-   - Two views: Summary and detailed matrix
+4. **Evaluate**: Rate your options against each criterion
+   - Enter the options you're considering
+   - Rate how well each option performs for each criterion
+   - Get a final weighted score that accounts for both criteria importance and option performance
 
-4. **Evaluate Options**
-   - Rate your options against the weighted criteria
-   - Get data-driven final rankings
-   - Make confident decisions
+### The Math Behind It
 
-## Perfect For
+The tool uses these key mathematical concepts:
 
-- Product Decisions
-- Career Choices
-- Feature Prioritization
-- Investment Decisions
-- Any complex choice with multiple factors
+1. **Pairwise Comparison Matrix**: Your comparisons create a matrix where:
+   - Each element represents the relative importance of criterion i compared to criterion j
+   - If criterion A is 3 times more important than B, then B is 1/3 as important as A
+   - The diagonal is always 1 (each criterion compared to itself)
 
-## Data Format
+2. **Priority Vector**: The final weights are calculated by:
+   - Normalizing the matrix (dividing each element by its column sum)
+   - Taking the average of each row in the normalized matrix
 
-Export your results in CSV format for documentation or future use:
-```csv
-Elements,Criterion1,Criterion2,Criterion3,Score,Percentage
-Criterion1,1,3,0.33,1.44,33.3
-Criterion2,0.33,1,0.2,0.51,11.8
-Criterion3,3,5,1,3.00,54.9
-```
+3. **Final Scores**: Options are scored by:
+   - Multiplying each rating by the criterion's weight
+   - Summing these weighted ratings for each option
 
-## Browser Support
+## Usage
 
-Works on all modern browsers (Chrome, Firefox, Safari, Edge)
+1. Visit the tool at [URL]
+2. Choose between starting a new comparison or uploading an existing matrix
+3. Follow the step-by-step process
+4. Download your results or continue to evaluate options
 
-## Feedback
+## Development
 
-Coming soon
+The tool is built with vanilla JavaScript and uses modern CSS features. To run locally:
+
+1. Clone the repository
+2. Open `index.html` in a web browser
+3. No build process or dependencies required
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
