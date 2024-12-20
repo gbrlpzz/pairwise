@@ -869,6 +869,11 @@ function displayFinalResults(results) {
 
     html += '</div>';
     document.getElementById('rankingResults').innerHTML = html;
+
+    // Add event listener for the download button
+    document.getElementById('downloadFinalResultsBtn').addEventListener('click', () => {
+        downloadFinalResults(results);
+    });
 }
 
 function navigateToStep(step) {
@@ -1386,4 +1391,41 @@ function showHelp(step) {
         </div>
     `;
     document.body.appendChild(modal);
+}
+
+function downloadFinalResults(results) {
+    // Create CSV content
+    let csvContent = "Rank,Option,Score\n";
+    results.forEach((result, index) => {
+        csvContent += `${index + 1},${result.option},${result.score.toFixed(2)}\n`;
+    });
+
+    // Update button to show downloading state
+    const downloadBtn = document.getElementById('downloadFinalResultsBtn');
+    downloadBtn.innerHTML = `
+        <div class="spinner-small"></div>
+        <span>Downloading...</span>
+    `;
+    downloadBtn.disabled = true;
+    downloadBtn.classList.remove('success');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "final_results.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show success state after small delay
+    setTimeout(() => {
+        downloadBtn.innerHTML = `
+            <span class="success-icon-small">✓</span>
+            <span>Download Again</span>
+        `;
+        downloadBtn.classList.add('success');
+        downloadBtn.disabled = false;
+    }, 500);
 }
