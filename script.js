@@ -976,9 +976,7 @@ function showCurrentSection() {
 
 // Add this function to handle matrix import
 function importComparisonMatrix(file) {
-    // Show loading state
     const uploadSection = document.querySelector('.matrix-input');
-    const originalContent = uploadSection.innerHTML;
     uploadSection.innerHTML = `
         <div class="loading-state">
             <div class="spinner"></div>
@@ -1025,34 +1023,73 @@ function importComparisonMatrix(file) {
             window.savedMatrix = matrix;
             window.savedElements = elements;
             
-            // Show success state
+            // Show success state with improved file change UI
             uploadSection.innerHTML = `
                 <div class="success-state">
                     <div class="success-icon">✓</div>
-                    <p>Matrix imported successfully!</p>
+                    <p class="success-title">Matrix imported successfully!</p>
+                    <div class="matrix-info">
+                        <p class="file-name">${file.name}</p>
+                        <p class="matrix-details">${elements.length} × ${elements.length} matrix</p>
+                    </div>
+                    <div class="file-upload-container">
+                        <label for="matrixFileInput" class="file-change-btn">
+                            <span class="change-icon">↺</span>
+                            Change File
+                        </label>
+                        <input type="file" 
+                               id="matrixFileInput" 
+                               accept=".csv" 
+                               class="input-field visually-hidden">
+                    </div>
                 </div>
             `;
+
+            // Re-attach event listener
+            document.getElementById('matrixFileInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importComparisonMatrix(e.target.files[0]);
+                }
+            });
             
-            // After 1.5 seconds, proceed to evaluation
-            setTimeout(() => {
-                currentStep = 4;
-                updateStepIndicators();
-                showSectionForStep(4);
-                startEvaluation();
-            }, 1500);
+            // Enable and update the start button
+            const startBtn = document.getElementById('startComparisonBtn');
+            startBtn.disabled = false;
+            startBtn.textContent = 'Continue to Evaluation →';
+            startBtn.classList.add('ready');
             
         } catch (error) {
-            // Show error state and restore original content after 3 seconds
+            // Show error state with improved UI
             uploadSection.innerHTML = `
                 <div class="error-state">
                     <div class="error-icon">!</div>
-                    <p>Error: ${error.message}</p>
+                    <p class="error-title">Import Failed</p>
+                    <p class="error-message">${error.message}</p>
+                    <div class="file-upload-container">
+                        <label for="matrixFileInput" class="file-change-btn error">
+                            <span class="change-icon">↺</span>
+                            Try Another File
+                        </label>
+                        <input type="file" 
+                               id="matrixFileInput" 
+                               accept=".csv" 
+                               class="input-field visually-hidden">
+                    </div>
                 </div>
             `;
-            setTimeout(() => {
-                uploadSection.innerHTML = originalContent;
-            }, 3000);
-            console.error('Import error:', error);
+
+            // Re-attach event listener
+            document.getElementById('matrixFileInput').addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    importComparisonMatrix(e.target.files[0]);
+                }
+            });
+
+            // Disable the start button
+            const startBtn = document.getElementById('startComparisonBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = 'Start Comparison';
+            startBtn.classList.remove('ready');
         }
     };
     reader.readAsText(file);

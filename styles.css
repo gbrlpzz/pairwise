@@ -787,6 +787,19 @@ body {
 .error-state {
     text-align: center;
     padding: 2rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.success-state {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.error-state {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
 }
 
 .spinner {
@@ -936,5 +949,147 @@ body {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Add these styles after the existing .success-state styles */
+.success-state .file-upload-container,
+.error-state .file-upload-container {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.success-state .input-field,
+.error-state .input-field {
+    margin-bottom: 0.5rem;
+}
+
+.success-state .input-help {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.error-state .input-help {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Update and add these styles */
+.success-state,
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.success-state {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.error-state {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.success-title,
+.error-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1rem 0;
+}
+
+.matrix-info {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+}
+
+.file-name {
+    font-weight: 500;
+    margin: 0;
+}
+
+.matrix-details {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin: 0.25rem 0 0;
+}
+
+.error-message {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    margin: 1rem 0;
+}
+
+.file-change-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-change-btn:hover {
+    background: var(--background);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.file-change-btn.error {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.file-change-btn.error:hover {
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.change-icon {
+    font-size: 1.25rem;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Add animation for the ready state of the start button */
+.btn.ready {
+    animation: readyPulse 2s infinite;
+}
+
+@keyframes readyPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
 }
   
