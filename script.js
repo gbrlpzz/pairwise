@@ -318,8 +318,11 @@ function showNextComparison() {
 function showResults() {
     document.getElementById('comparison').style.display = 'none';
     document.getElementById('results').style.display = 'block';
-    updateStepIndicator(3);
-
+    
+    // Make sure to update the step indicator
+    const stepIndicator = document.querySelector('.step-indicator');
+    stepIndicator.setAttribute('data-step', '3');
+    
     // Calculate scores
     const scores = matrix.map(row => 
         row.reduce((a, b) => a + b, 0) / elements.length
@@ -441,6 +444,10 @@ function startEvaluation() {
         document.getElementById('evaluationMatrix').innerHTML = 
             '<p class="input-help">Enter your options above to start the evaluation</p>';
     }
+
+    // Update step indicator to show third section filled
+    const stepIndicator = document.querySelector('.step-indicator');
+    stepIndicator.setAttribute('data-step', 'evaluate');
 }
 
 function handleOptionsInput() {
@@ -634,6 +641,10 @@ function calculateFinalResults() {
     // Sort and display results
     results.sort((a, b) => b.score - a.score);
     displayFinalResults(results);
+
+    // Update progress indicator to show completion (fills fourth section)
+    const stepIndicator = document.querySelector('.step-indicator');
+    stepIndicator.setAttribute('data-step', 'complete');
 }
 
 function displayFinalResults(results) {
@@ -849,6 +860,12 @@ function updateStepIndicators() {
             step.classList.add('future');
         }
     });
+
+    // Reset to normal step if going backwards
+    const stepIndicator = document.querySelector('.step-indicator');
+    if (currentStep < 4) {
+        stepIndicator.setAttribute('data-step', currentStep.toString());
+    }
 }
 
 function saveToLocalStorage() {

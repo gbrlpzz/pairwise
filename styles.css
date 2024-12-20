@@ -1,15 +1,25 @@
 :root {
-    --primary-color: #2563eb;
-    --success-color: #16a34a;
+    --primary-color: #3b82f6;
+    --primary-light: #60a5fa;
+    --primary-dark: #2563eb;
+    --success-color: #10b981;
     --background: #f8fafc;
+    --surface: #ffffff;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --border-color: #e2e8f0;
-    --radius-sm: 4px;
+    --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --radius-full: 9999px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
 }
 
 /* Base Styles */
@@ -46,93 +56,122 @@ body {
 
 /* Step Indicator */
 .step-indicator {
+    margin: var(--spacing-xl) 0;
+    position: relative;
+}
+
+/* Container for steps */
+.steps-container {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 2rem;
+    background: var(--background);
+    border-radius: var(--radius-full);
+    padding: 0.5rem;
     position: relative;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.step-indicator::before {
+/* Progress fill that animates behind the steps */
+.steps-container::before {
     content: '';
     position: absolute;
-    top: 15px;
+    top: 0;
     left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--border-color);
+    height: 100%;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-full);
     z-index: 0;
+    transition: width 0.3s ease;
 }
 
+/* Progress states - adjusted to fill each section at the right time */
+.step-indicator[data-step="1"] .steps-container::before { width: 0; }
+.step-indicator[data-step="2"] .steps-container::before { width: 25%; }
+.step-indicator[data-step="3"] .steps-container::before { width: 50%; }
+.step-indicator[data-step="4"] .steps-container::before { width: 75%; }
+.step-indicator[data-step="evaluate"] .steps-container::before { width: 75%; }
+.step-indicator[data-step="complete"] .steps-container::before { width: 100%; }
+
+/* Individual step styling */
 .step {
-    position: relative;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    position: relative;
     z-index: 1;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
+    flex: 1;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
 }
 
-/* Add styles for future steps */
-.step.future {
-    cursor: not-allowed;
+/* Step label - now on the left */
+.step span {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    order: 1;
 }
 
-/* Update hover behavior */
-.step:not(.future):hover {
-    color: var(--primary-color);
-}
-
-.step.completed {
-    background-color: transparent;
-    color: var(--text-primary);
-}
-
-.step.completed .step-number {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
+/* Number bubble - now on the right */
 .step-number {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: white;
+    width: 28px;
+    height: 28px;
+    background: var(--surface);
     border: 2px solid var(--border-color);
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.step span {
-    font-size: 0.875rem;
     color: var(--text-secondary);
     transition: all 0.3s ease;
+    order: 2;
 }
 
+/* Active state */
 .step.active .step-number {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.step.active span {
+    color: var(--primary-color);
+}
+
+/* Completed state */
+.step.completed .step-number {
     background: var(--primary-color);
     border-color: var(--primary-color);
     color: white;
 }
 
-.step.active span {
-    color: var(--primary-color);
-    font-weight: 500;
+.step.completed span {
+    color: var(--text-primary);
+}
+
+/* Future state */
+.step.future .step-number {
+    background: var(--surface);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.step.future span {
+    color: var(--text-secondary);
 }
 
 /* Cards */
 .card {
-    background: white;
+    background: var(--surface);
     border-radius: var(--radius-lg);
-    padding: 2rem;
+    padding: var(--spacing-xl);
     box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
     margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 /* Input Groups */
@@ -148,16 +187,18 @@ body {
 
 .input-field {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     font-size: 1rem;
-    transition: border-color 0.2s ease;
+    transition: all 0.2s ease;
+    background: var(--surface);
 }
 
 .input-field:focus {
     outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input-help {
@@ -177,19 +218,24 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: var(--spacing-lg);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.radio-option:hover {
-    background: var(--background);
+.radio-option:hover:not(:disabled) {
+    border-color: var(--primary-light);
+    background: rgba(59, 130, 246, 0.05);
 }
 
 .radio-option input[type="radio"] {
     margin-top: 0.25rem;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+    color: var(--primary-color);
 }
 
 .radio-label {
@@ -206,18 +252,25 @@ body {
 /* Comparison Elements */
 .comparison-elements {
     display: flex;
-    gap: 2rem;
-    margin: 2rem 0;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
 }
 
 .element-card {
     flex: 1;
-    padding: 1.5rem;
+    padding: var(--spacing-xl);
     background: var(--background);
     border-radius: var(--radius-md);
     text-align: center;
     font-weight: 500;
-    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.element-card:hover {
+    /* Remove these styles */
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 /* Slider */
@@ -230,22 +283,24 @@ body {
     height: 6px;
     -webkit-appearance: none;
     background: var(--border-color);
-    border-radius: 3px;
+    border-radius: var(--radius-full);
     outline: none;
 }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background: var(--primary-color);
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: var(--shadow-md);
 }
 
 .slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
 }
 
 .slider-labels {
@@ -292,20 +347,22 @@ body {
 
 .btn {
     padding: 0.75rem 1.5rem;
-    border: none;
     border-radius: var(--radius-md);
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
+    border: 1px solid transparent;
 }
 
 .btn-primary {
     background: var(--primary-color);
     color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-success {
@@ -519,5 +576,25 @@ body {
     background-color: var(--background);
     padding: 1.5rem;
     border-radius: var(--radius-md);
+}
+
+/* Add hover effects only to interactive elements */
+.btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    /* Remove hover effects for disabled buttons */
+    transform: none;
+    box-shadow: none;
+}
+
+/* Add focus styles for better keyboard navigation */
+.radio-option:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
   
