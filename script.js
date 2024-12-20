@@ -87,6 +87,36 @@ let savedData = {
     }
 };
 
+// Add undo/redo functionality
+let comparisonHistory = [];
+let historyIndex = -1;
+
+function saveToHistory(comparison) {
+    // Remove any future history if we're not at the end
+    comparisonHistory = comparisonHistory.slice(0, historyIndex + 1);
+    comparisonHistory.push(comparison);
+    historyIndex++;
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (historyIndex > 0) {
+        historyIndex--;
+        const previousComparison = comparisonHistory[historyIndex];
+        restoreComparison(previousComparison);
+        updateUndoRedoButtons();
+    }
+}
+
+function redo() {
+    if (historyIndex < comparisonHistory.length - 1) {
+        historyIndex++;
+        const nextComparison = comparisonHistory[historyIndex];
+        restoreComparison(nextComparison);
+        updateUndoRedoButtons();
+    }
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     const radioButtons = document.querySelectorAll('input[name="comparisonType"]');
@@ -1159,4 +1189,104 @@ function validateElements(input) {
     if (!input.parentElement.querySelector('.input-help')) {
         input.parentElement.appendChild(helpText);
     }
+}
+
+function updateProgressBar() {
+    const progressFill = document.querySelector('.progress-fill');
+    const progressText = document.querySelector('.progress-text');
+    
+    if (currentStep === 2) {
+        // For comparison step
+        const progress = (currentComparison / comparisons.length) * 100;
+        progressFill.style.width = `${progress}%`;
+        progressText.innerHTML = `
+            <strong>${currentComparison}</strong> of <strong>${comparisons.length}</strong> comparisons
+            <span class="progress-estimate">(${Math.ceil((comparisons.length - currentComparison) * 0.5)} min remaining)</span>
+        `;
+    } else if (currentStep === 4) {
+        // For evaluation step
+        const totalRatings = savedElements.length * savedData.evaluationData.options.length;
+        const completedRatings = savedData.evaluationData.ratings.length;
+        const progress = (completedRatings / totalRatings) * 100;
+        
+        progressFill.style.width = `${progress}%`;
+        progressText.innerHTML = `
+            <strong>${completedRatings}</strong> of <strong>${totalRatings}</strong> ratings completed
+        `;
+    }
+}
+
+// Add keyboard navigation for comparison
+function setupKeyboardNavigation() {
+    document.addEventListener('keydown', (e) => {
+        if (currentStep === 2) {
+            const slider = document.getElementById('comparisonSlider');
+            switch(e.key) {
+                case 'ArrowLeft':
+                    slider.value = Math.max(0, parseInt(slider.value) - 1);
+                    updateSliderSelection();
+                    break;
+                case 'ArrowRight':
+                    slider.value = Math.min(4, parseInt(slider.value) + 1);
+                    updateSliderSelection();
+                    break;
+                case 'Enter':
+                    if (!document.getElementById('submitComparisonBtn').disabled) {
+                        submitComparison();
+                    }
+                    break;
+            }
+        }
+    });
+}
+
+// Add autosave functionality
+function setupAutosave() {
+    const autosaveInterval = 30000; // 30 seconds
+    
+    setInterval(() => {
+        if (savedData.elements.length > 0) {
+            saveToLocalStorage();
+            showAutosaveNotification();
+        }
+    }, autosaveInterval);
+}
+
+function showAutosaveNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'autosave-notification';
+    notification.innerHTML = `
+        <span class="autosave-icon">💾</span>
+        Progress saved automatically
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+function showHelp(step) {
+    const helpContent = {
+        1: {
+            title: 'Getting Started',
+            content: 'Enter the criteria you want to compare...'
+        },
+        2: {
+            title: 'Making Comparisons',
+            content: 'Use the slider to indicate relative importance...'
+        },
+        // ... more help content
+    };
+
+    const modal = document.createElement('div');
+    modal.className = 'help-modal';
+    modal.innerHTML = `
+        <div class="help-content">
+            <h3>${helpContent[step].title}</h3>
+            <p>${helpContent[step].content}</p>
+            <button onclick="this.parentElement.parentElement.remove()">Got it</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
 }
