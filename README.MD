@@ -8,7 +8,7 @@ A web-based tool for making complex decisions using the Analytic Hierarchy Proce
 - **Zero Data Collection**: Your decisions stay completely private
 - **No Account Required**: Just open and use
 - **Local Storage Only**: Data saved locally in your browser
-- **No External Dependencies**: Zero third-party services or tracking
+- **No External Dependencies**
 
 ## About
 
