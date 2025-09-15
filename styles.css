@@ -459,37 +459,54 @@ body {
     margin: 2rem 0;
 }
 
-.slider {
-    width: 100%;
-    height: 6px;
-    -webkit-appearance: none;
-    background: var(--border-color);
-    border-radius: var(--radius-full);
-    outline: none;
+/* Segmented choice */
+.segmented-container {
+    margin: 1rem 0 2rem;
 }
 
-.slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    background: var(--primary-color);
-    border-radius: var(--radius-full);
+.segmented {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.5rem;
+    background: var(--background);
+    padding: 0.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.segmented input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.segmented label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-md);
-}
-
-.slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: var(--shadow-lg);
-}
-
-.slider-labels {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
     color: var(--text-secondary);
+    background: var(--surface);
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.segmented input[type="radio"]:focus + label,
+.segmented label:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.segmented input[type="radio"]:checked + label {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.06);
+    font-weight: 600;
 }
 
 /* Progress Bar */
@@ -701,6 +718,69 @@ body {
 .rating-input:invalid {
     border-color: #ef4444;
     background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* N/A toggle next to rating input */
+/* N/A toggle removed per user request */
+
+/* Quick fill buttons per row */
+.quickfill-col {
+    min-width: 220px;
+}
+
+.add-option-col {
+    min-width: 120px;
+}
+
+.quickfill {
+    white-space: nowrap;
+}
+
+.quickfill-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.btn-quick {
+    padding: 0.25rem 0.5rem;
+    min-width: 32px;
+    font-size: 0.875rem;
+}
+
+.btn-quick.secondary {
+    background: var(--background);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Option header controls */
+.option-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.option-name-input {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.25rem 0.5rem;
+    font: inherit;
+    width: 100%;
+    background: var(--surface);
+}
+
+.btn-icon.remove-option {
+    min-width: auto;
+    padding: 0.25rem 0.5rem;
+    background: var(--background);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-small {
+    padding: 0.375rem 0.75rem;
+    min-width: auto;
 }
 
 /* Rating Help Panel */

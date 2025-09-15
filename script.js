@@ -1,6 +1,5 @@
 window.onload = function() {
-    // Clear ALL localStorage
-    localStorage.clear();
+    // Do not clear localStorage on load; preserve saved progress and theme
     
     // Reset global variables but preserve matrix data
     const savedMatrix = window.savedMatrix;
@@ -38,13 +37,9 @@ window.onload = function() {
         }
     });
     
-    // Reset to first step
+    // Reset to first step in UI (actual saved step will be restored below)
     updateStepIndicators();
-    
-    // Show only setup section
     showSectionForStep(1);
-    
-    // Update UI language to match default radio selection
     updateUILanguage();
 };
 
@@ -139,8 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateUILanguage();
 
-    const slider = document.getElementById('comparisonSlider');
-    slider.addEventListener('input', updateSliderSelection);
+    // Choice group (segmented) listeners
+    document.querySelectorAll('input[name="comparisonChoice"]').forEach(r => {
+        r.addEventListener('change', updateChoiceSelection);
+    });
 
     // Add button event listeners
     document.getElementById('startComparisonBtn').addEventListener('click', startComparison);
@@ -152,10 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.savedElements = elements;
         startEvaluation();
     });
-    document.getElementById('startOverBtn').addEventListener('click', () => {
-        localStorage.clear();
-        window.onload();
-    });
+    document.getElementById('startOverBtn').addEventListener('click', resetApp);
 
     // Make step indicators clickable
     document.querySelectorAll('.step').forEach((step, index) => {
@@ -179,26 +173,50 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('skipToEvaluationBtn').addEventListener('click', () => {
-        // Hide all sections first
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('comparison').style.display = 'none';
-        document.getElementById('results').style.display = 'none';
-        
-        // Update step indicator
-        currentStep = 4;
-        updateStepIndicators();
-        
-        // Show evaluation section
-        startEvaluation();
-        
-        // Smooth scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+    const skipBtn = document.getElementById('skipToEvaluationBtn');
+    if (skipBtn) {
+        skipBtn.addEventListener('click', () => {
+            // Hide all sections first
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('comparison').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            
+            // Update step indicator
+            currentStep = 4;
+            updateStepIndicators();
+            
+            // Show evaluation section
+            startEvaluation();
+            
+            // Smooth scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
 
-    document.getElementById('elements').addEventListener('input', function() {
+    const elementsInputEl = document.getElementById('elements');
+    elementsInputEl.addEventListener('input', function() {
         validateElements(this);
+        updateWorkloadPreview();
     });
+    updateWorkloadPreview();
+
+    // Enable keyboard navigation and autosave
+    setupKeyboardNavigation();
+    setupAutosave();
+
+    // Try example flow
+    const tryExampleBtn = document.getElementById('tryExampleBtn');
+    if (tryExampleBtn) {
+        tryExampleBtn.addEventListener('click', () => {
+            document.querySelector('input[name="comparisonType"][value="importance"]').checked = true;
+            updateUILanguage();
+            const example = ['Price', 'Quality', 'Speed', 'Reliability'];
+            const input = document.getElementById('elements');
+            input.value = example.join(', ');
+            updateWorkloadPreview();
+            startComparison();
+        });
+    }
 });
 
 function updateUILanguage() {
@@ -219,13 +237,18 @@ function updateUILanguage() {
     }
 }
 
-function updateSliderLabels() {
+// Update segmented choice labels for current pair
+function updateChoiceLabels(i, j) {
     const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
     const labels = COMPARISON_TYPES[selectedType].sliderLabels;
-    
-    document.getElementById('leftLabel').textContent = labels[0];
-    document.getElementById('centerLabel').textContent = labels[2];
-    document.getElementById('rightLabel').textContent = labels[4];
+    const a = elements[i];
+    const b = elements[j];
+    // 0,1 favor A; 2 equal; 3,4 favor B
+    document.getElementById('choiceLabel0').textContent = `${labels[0]}: ${a}`;
+    document.getElementById('choiceLabel1').textContent = `${labels[1]}: ${a}`;
+    document.getElementById('choiceLabel2').textContent = labels[2];
+    document.getElementById('choiceLabel3').textContent = `${labels[3]}: ${b}`;
+    document.getElementById('choiceLabel4').textContent = `${labels[4]}: ${b}`;
 }
 
 function updateStepIndicator(stepNumber) {
@@ -277,7 +300,6 @@ function startComparison() {
         currentStep = 2;
         updateStepIndicators();
         showSectionForStep(2);
-        
         showCurrentComparison();
     } else {
         // Handle matrix file if one is selected
@@ -300,53 +322,21 @@ function startComparison() {
     }
 }
 
-function updateSliderSelection() {
-    const slider = document.getElementById('comparisonSlider');
-    const value = parseInt(slider.value);
-    const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
-    const labels = COMPARISON_TYPES[selectedType].sliderLabels;
-    
-    // Update visual feedback
-    const leftLabel = document.getElementById('leftLabel');
-    const centerLabel = document.getElementById('centerLabel');
-    const rightLabel = document.getElementById('rightLabel');
-    
-    // Reset all styles
-    [leftLabel, centerLabel, rightLabel].forEach(label => {
-        label.style.fontWeight = '400';
-        label.style.transform = 'scale(1)';
-        label.style.color = 'var(--text-secondary)';
-    });
-    
-    // Apply styles based on selection
-    if (value < 2) {
-        leftLabel.style.fontWeight = '600';
-        leftLabel.style.transform = 'scale(1.05)';
-        leftLabel.style.color = 'var(--text-primary)';
-    } else if (value === 2) {
-        centerLabel.style.fontWeight = '600';
-        centerLabel.style.transform = 'scale(1.05)';
-        centerLabel.style.color = 'var(--text-primary)';
-    } else {
-        rightLabel.style.fontWeight = '600';
-        rightLabel.style.transform = 'scale(1.05)';
-        rightLabel.style.color = 'var(--text-primary)';
-    }
-    
-    // Update option cards
+function updateChoiceSelection() {
+    const selected = document.querySelector('input[name="comparisonChoice"]:checked');
+    const value = selected ? parseInt(selected.value) : 2;
     const optionA = document.getElementById('optionA');
     const optionB = document.getElementById('optionB');
-    
     optionA.style.transform = value < 2 ? 'scale(1.05)' : 'scale(1)';
     optionB.style.transform = value > 2 ? 'scale(1.05)' : 'scale(1)';
-    
     optionA.style.borderColor = value < 2 ? 'var(--primary-color)' : 'var(--border-color)';
     optionB.style.borderColor = value > 2 ? 'var(--primary-color)' : 'var(--border-color)';
 }
 
 function submitComparison() {
     const [i, j] = comparisons[currentComparison];
-    const sliderValue = parseInt(document.getElementById('comparisonSlider').value);
+    const selected = document.querySelector('input[name="comparisonChoice"]:checked');
+    const sliderValue = selected ? parseInt(selected.value) : 2;
     
     // Convert slider value to matrix values
     const values = [5, 3, 1, 1/3, 1/5];
@@ -385,27 +375,7 @@ function submitComparison() {
     }
 }
 
-function showNextComparison() {
-    const [i, j] = comparisons[currentComparison];
-    document.getElementById('optionA').textContent = elements[i];
-    document.getElementById('optionB').textContent = elements[j];
-    
-    // Check if there's an existing comparison
-    const existingComparison = savedData.comparisons.find(comp => 
-        comp.optionA === elements[i] && comp.optionB === elements[j]
-    );
-    
-    // Set slider value based on existing comparison or default to center
-    const slider = document.getElementById('comparisonSlider');
-    if (existingComparison) {
-        slider.value = existingComparison.value;
-    } else {
-        slider.value = 2;
-    }
-    
-    updateSliderSelection();
-    updateNavigationButtons();
-}
+// (Removed duplicate showNextComparison implementation)
 
 function showResults() {
     document.getElementById('comparison').style.display = 'none';
@@ -599,45 +569,72 @@ function startEvaluation() {
     
     // Show evaluation section
     document.getElementById('evaluation').style.display = 'block';
-
-    // Clear previous input and add event listener
-    const optionsInput = document.getElementById('optionsInput');
-    optionsInput.value = savedData.evaluationData.options.join(', '); // Restore any saved options
-    
-    // Remove existing listener to prevent duplicates
-    const oldOptionsInput = optionsInput.cloneNode(true);
-    optionsInput.parentNode.replaceChild(oldOptionsInput, optionsInput);
-    
-    // Add fresh event listener
-    oldOptionsInput.addEventListener('input', handleOptionsInput);
-    
-    // Show evaluation matrix if we have options
-    if (savedData.evaluationData.options.length >= 2) {
-        createEvaluationMatrix(savedData.evaluationData.options);
-    } else {
-        document.getElementById('evaluationMatrix').innerHTML = 
-            '<p class="input-help">Enter your options above to start the evaluation</p>';
+    // Ensure evaluation progress UI exists
+    const evalSection = document.getElementById('evaluation');
+    if (!evalSection.querySelector('.evaluation-progress')) {
+        const progress = document.createElement('div');
+        progress.className = 'progress-container evaluation-progress';
+        progress.innerHTML = `
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text" aria-live="polite"></div>
+        `;
+        // Insert after the options input group
+        const inputGroup = evalSection.querySelector('.input-group');
+        if (inputGroup && inputGroup.nextSibling) {
+            evalSection.insertBefore(progress, inputGroup.nextSibling);
+        } else {
+            evalSection.prepend(progress);
+        }
     }
+
+    // Render matrix with current options (can be 0, we show add controls in-table)
+    createEvaluationMatrix(savedData.evaluationData.options);
 
     // Smooth scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function handleOptionsInput() {
-    const optionsInput = document.getElementById('optionsInput');
-    const options = optionsInput.value
-        .split(',')
-        .map(opt => opt.trim())
-        .filter(opt => opt.length > 0);
-
-    if (options.length >= 2) {
-        savedData.evaluationData.options = options;
-        saveToLocalStorage();
-        createEvaluationMatrix(options);
-    } else {
-        document.getElementById('evaluationMatrix').innerHTML = 
-            '<p class="input-help">Enter at least 2 options to compare</p>';
+// Inline options management
+function addOption() {
+    const defaultNameBase = 'Option';
+    let index = savedData.evaluationData.options.length + 1;
+    let candidate = `${defaultNameBase} ${index}`;
+    while (savedData.evaluationData.options.includes(candidate)) {
+        index++;
+        candidate = `${defaultNameBase} ${index}`;
     }
+    savedData.evaluationData.options.push(candidate);
+    saveToLocalStorage();
+    createEvaluationMatrix(savedData.evaluationData.options);
+}
+
+function renameOption(oldName, newName) {
+    const trimmed = (newName || '').trim();
+    if (!trimmed) return; // ignore empty names
+    const options = savedData.evaluationData.options;
+    const idx = options.indexOf(oldName);
+    if (idx === -1) return;
+    if (options.includes(trimmed)) return; // avoid duplicates
+    options[idx] = trimmed;
+    // migrate ratings
+    savedData.evaluationData.ratings.forEach(r => {
+        if (r.option === oldName) r.option = trimmed;
+    });
+    saveToLocalStorage();
+    createEvaluationMatrix(savedData.evaluationData.options);
+}
+
+function removeOption(name) {
+    const options = savedData.evaluationData.options;
+    const idx = options.indexOf(name);
+    if (idx === -1) return;
+    options.splice(idx, 1);
+    // remove ratings for this option
+    savedData.evaluationData.ratings = savedData.evaluationData.ratings.filter(r => r.option !== name);
+    saveToLocalStorage();
+    createEvaluationMatrix(savedData.evaluationData.options);
 }
 
 function handleRatingChange(input) {
@@ -716,9 +713,19 @@ function createEvaluationMatrix(options) {
             <table class="evaluation-table">
                 <thead>
                     <tr>
-                        <th>Criteria</th>
-                        <th>Weight</th>
-                        ${options.map(opt => `<th>${opt}</th>`).join('')}
+                        <th scope="col">Criteria</th>
+                        <th scope="col">Weight</th>
+                        ${options.map(opt => `
+                            <th scope=\"col\">
+                                <div class=\"option-header\">
+                                    <input class=\"option-name-input\" value=\"${opt}\" aria-label=\"Rename option ${opt}\" onblur=\"renameOption('${opt.replace(/'/g, "\\'")}', this.value)\" />
+                                    <button type=\"button\" class=\"btn btn-icon remove-option\" aria-label=\"Remove ${opt}\" onclick=\"removeOption('${opt.replace(/'/g, "\\'")}')\">×</button>
+                                </div>
+                            </th>
+                        `).join('')}
+                        <th scope="col" class="add-option-col">
+                            <button type="button" class="btn btn-primary btn-small" onclick="addOption()" aria-label="Add option">+ Add</button>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -726,7 +733,7 @@ function createEvaluationMatrix(options) {
     criteria.forEach((criterion, i) => {
         html += `
             <tr>
-                <td>
+                <td scope="row">
                     ${criterion}
                 </td>
                 <td>
@@ -754,6 +761,7 @@ function createEvaluationMatrix(options) {
                         </td>
                     `;
                 }).join('')}
+                <td></td>
             </tr>`;
     });
 
@@ -769,6 +777,7 @@ function createEvaluationMatrix(options) {
     </div>`;
 
     document.getElementById('evaluationMatrix').innerHTML = html;
+    updateEvaluationProgress();
 }
 
 function calculateWeights() {
@@ -782,18 +791,17 @@ function calculateWeights() {
 }
 
 function updateEvaluationProgress() {
-    const totalRatings = window.savedElements.length * savedData.evaluationData.options.length;
-    const validRatings = savedData.evaluationData.ratings.filter(r => 
-        r.rating >= 1 && r.rating <= 5
-    ).length;
-    const progressPercent = (validRatings / totalRatings) * 100;
-    
-    const progressFill = document.querySelector('.progress-fill');
-    const progressText = document.querySelector('.progress-text');
-    
+    const totalCells = window.savedElements.length * savedData.evaluationData.options.length;
+    const validCount = savedData.evaluationData.ratings.filter(r => r.rating >= 1 && r.rating <= 5).length;
+    const completed = Math.min(totalCells, validCount);
+    const progressPercent = totalCells > 0 ? (completed / totalCells) * 100 : 0;
+
+    const container = document.getElementById('evaluation');
+    const progressFill = container.querySelector('.progress-fill');
+    const progressText = container.querySelector('.progress-text');
     if (progressFill && progressText) {
         progressFill.style.width = `${progressPercent}%`;
-        progressText.textContent = `${validRatings}/${totalRatings} valid ratings`;
+        progressText.textContent = `${completed}/${totalCells} cells completed`;
     }
 }
 
@@ -807,7 +815,8 @@ function calculateFinalResults() {
     let allValid = true;
     inputs.forEach(input => {
         const value = parseFloat(input.value);
-        if (!value || value < 1 || value > 5) {
+        const na = input.parentElement.querySelector('.na-toggle input')?.checked === true;
+        if (!na && (!value || value < 1 || value > 5)) {
             input.style.borderColor = 'red';
             allValid = false;
         } else {
@@ -824,11 +833,9 @@ function calculateFinalResults() {
     const results = options.map(option => {
         let totalScore = 0;
         criteria.forEach((criterion, i) => {
-            const rating = savedData.evaluationData.ratings.find(r => 
-                r.criterion === criterion && r.option === option
-            );
-            if (rating) {
-                totalScore += rating.rating * weights[i];
+            const entry = savedData.evaluationData.ratings.find(r => r.criterion === criterion && r.option === option);
+            if (entry && typeof entry.rating === 'number') {
+                totalScore += entry.rating * weights[i];
             }
         });
         return { option, score: totalScore };
@@ -849,7 +856,7 @@ function displayFinalResults(results) {
     finalResultsSection.style.display = 'block';
     document.getElementById('evaluation').style.display = 'none';
 
-    const maxScore = Math.max(...results.map(r => r.score));
+    const maxScore = Math.max(...results.map(r => r.score), 1);
     let html = '<div class="final-rankings" style="position: relative;">';  // Ensure relative positioning
     
     results.forEach((result, index) => {
@@ -891,6 +898,7 @@ function navigateToStep(step) {
         switch(step) {
             case 1:
                 document.getElementById('setup').style.display = 'block';
+                focusElement('#elements');
                 break;
                 
             case 2:
@@ -908,6 +916,7 @@ function navigateToStep(step) {
                     );
                     document.getElementById('comparison').style.display = 'block';
                     showCurrentComparison();
+                    focusElement('#comparisonQuestion');
                 } else {
                     navigateToStep(1);
                 }
@@ -917,6 +926,7 @@ function navigateToStep(step) {
                 if (savedData.comparisons && savedData.comparisons.length > 0) {
                     document.getElementById('results').style.display = 'block';
                     showResults();
+                    focusElement('#results h2');
                 } else {
                     navigateToStep(2);
                 }
@@ -926,6 +936,7 @@ function navigateToStep(step) {
                 if (window.savedMatrix && window.savedElements) {
                     document.getElementById('evaluation').style.display = 'block';
                     startEvaluation();
+                    focusElement('#evaluation h2');
                 } else {
                     navigateToStep(3);
                 }
@@ -940,21 +951,18 @@ function showCurrentComparison() {
     const [i, j] = comparisons[currentComparison];
     document.getElementById('optionA').textContent = elements[i];
     document.getElementById('optionB').textContent = elements[j];
+    updateChoiceLabels(i, j);
     
     // Check if there's an existing comparison
     const existingComparison = savedData.comparisons.find(comp => 
         comp.optionA === elements[i] && comp.optionB === elements[j]
     );
     
-    // Set slider value based on existing comparison or default to center
-    const slider = document.getElementById('comparisonSlider');
-    if (existingComparison) {
-        slider.value = existingComparison.value;
-    } else {
-        slider.value = 2;
-    }
-    
-    updateSliderSelection();
+    // Set radio value based on existing comparison or default to center
+    const choiceToSelect = existingComparison ? existingComparison.value : 2;
+    const input = document.querySelector(`input[name="comparisonChoice"][value="${choiceToSelect}"]`);
+    if (input) input.checked = true;
+    updateChoiceSelection();
     updateNavigationButtons();
     
     // Update progress bar
@@ -1026,9 +1034,11 @@ function updateStepIndicators() {
     
     steps.forEach((step, index) => {
         step.classList.remove('active', 'completed', 'future');
+        step.removeAttribute('aria-current');
         
         if (index + 1 === currentStep) {
             step.classList.add('active');
+            step.setAttribute('aria-current', 'step');
         } else if (index + 1 < currentStep) {
             step.classList.add('completed');
         } else {
@@ -1083,17 +1093,13 @@ function loadSavedData() {
             case 3:
                 // Restore results
                 if (savedData.comparisons.length > 0) {
-                    displayResults();
+                    showResults();
                 }
                 break;
             case 4:
-                if (savedData.evaluationData.options.length > 0) {
-                    window.savedMatrix = matrix;
-                    window.savedElements = elements;
-                    document.getElementById('optionsInput').value = 
-                        savedData.evaluationData.options.join(', ');
-                    createEvaluationMatrix(savedData.evaluationData.options);
-                }
+                window.savedMatrix = matrix;
+                window.savedElements = elements;
+                createEvaluationMatrix(savedData.evaluationData.options);
                 break;
         }
     }
@@ -1248,6 +1254,14 @@ function showSectionForStep(step) {
     const targetSection = document.getElementById(sections[step]);
     if (targetSection) {
         targetSection.style.display = 'block';
+        // Focus management
+        switch (step) {
+            case 1: focusElement('#elements'); break;
+            case 2: focusElement('#comparisonQuestion'); break;
+            case 3: focusElement('#results h2'); break;
+            case 4: focusElement('#evaluation h2'); break;
+            case 5: focusElement('#finalResults h2'); break;
+        }
     }
 }
 
@@ -1322,15 +1336,22 @@ function updateProgressBar() {
 function setupKeyboardNavigation() {
     document.addEventListener('keydown', (e) => {
         if (currentStep === 2) {
-            const slider = document.getElementById('comparisonSlider');
+            const selected = document.querySelector('input[name="comparisonChoice"]:checked');
+            const current = selected ? parseInt(selected.value) : 2;
             switch(e.key) {
                 case 'ArrowLeft':
-                    slider.value = Math.max(0, parseInt(slider.value) - 1);
-                    updateSliderSelection();
+                    {
+                        const next = Math.max(0, current - 1);
+                        const input = document.querySelector(`input[name="comparisonChoice"][value="${next}"]`);
+                        if (input) { input.checked = true; updateChoiceSelection(); }
+                    }
                     break;
                 case 'ArrowRight':
-                    slider.value = Math.min(4, parseInt(slider.value) + 1);
-                    updateSliderSelection();
+                    {
+                        const next = Math.min(4, current + 1);
+                        const input = document.querySelector(`input[name="comparisonChoice"][value="${next}"]`);
+                        if (input) { input.checked = true; updateChoiceSelection(); }
+                    }
                     break;
                 case 'Enter':
                     if (!document.getElementById('submitComparisonBtn').disabled) {
@@ -1428,4 +1449,48 @@ function downloadFinalResults(results) {
         downloadBtn.classList.add('success');
         downloadBtn.disabled = false;
     }, 500);
+}
+
+// Helper: update workload preview under the criteria input
+function updateWorkloadPreview() {
+    const input = document.getElementById('elements');
+    if (!input) return;
+    const items = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    const n = items.length;
+    const comparisonsCount = n > 1 ? (n * (n - 1)) / 2 : 0;
+    const el = document.getElementById('workloadPreview');
+    if (el) {
+        if (comparisonsCount > 0) {
+            el.textContent = `You will make ${comparisonsCount} pairwise comparisons.`;
+        } else {
+            el.textContent = '';
+        }
+    }
+}
+
+// Helper: scoped reset that preserves theme
+function resetApp() {
+    const theme = localStorage.getItem('theme');
+    localStorage.removeItem('pairwiseData');
+    window.savedMatrix = null;
+    window.savedElements = null;
+    elements = [];
+    comparisons = [];
+    currentComparison = 0;
+    matrix = [];
+    currentStep = 1;
+    savedData = { comparisonType: '', elements: [], comparisons: [], evaluationData: { options: [], ratings: [] } };
+    if (theme) localStorage.setItem('theme', theme);
+    updateStepIndicators();
+    showSectionForStep(1);
+    updateUILanguage();
+}
+
+function focusElement(selector) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    if (!el.hasAttribute('tabindex')) {
+        el.setAttribute('tabindex', '-1');
+    }
+    el.focus({ preventScroll: false });
 }
