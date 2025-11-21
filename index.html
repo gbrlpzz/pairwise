@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -26,7 +26,7 @@
                             <rect x="14" y="14" width="6" height="6" rx="1" stroke="currentColor" stroke-width="2" />
                         </svg>
                     </div>
-                    <div class="brand-name">Pairwise</div>
+                    <h1 class="brand-name">Pairwise</h1>
                     <span class="brand-divider">·</span>
                     <p>Make better decisions</p>
                 </div>
@@ -61,141 +61,143 @@
             <div class="header-accent"></div>
         </header>
 
-        <div class="step-indicator" data-step="1">
-            <div class="steps-container">
-                <div class="step active">
-                    <div class="step-number">1</div>
-                    <span>Setup</span>
-                </div>
-                <div class="step future">
-                    <div class="step-number">2</div>
-                    <span>Compare</span>
-                </div>
-                <div class="step future">
-                    <div class="step-number">3</div>
-                    <span>Results</span>
-                </div>
-                <div class="step future">
-                    <div class="step-number">4</div>
-                    <span>Evaluate</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Setup Section -->
-        <div id="setup" class="card">
-            <div class="input-group">
-                <label>How would you like to start?</label>
-                <div class="radio-group">
-                    <label class="radio-option">
-                        <input type="radio" name="comparisonType" value="importance" checked>
-                        <span class="radio-label">New Comparison</span>
-                        <span class="radio-help">Start a fresh comparison between criteria</span>
-                    </label>
-                    <label class="radio-option">
-                        <input type="radio" name="comparisonType" value="matrix">
-                        <span class="radio-label">Use Existing Matrix</span>
-                        <span class="radio-help">Upload a previously exported comparison matrix</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="input-group comparison-input">
-                <label for="elements" id="elementsLabel">Enter criteria to compare</label>
-                <input type="text" id="elements" class="input-field"
-                    placeholder="Enter items separated by commas (e.g., Price, Quality, Speed)">
-                <p id="workloadPreview" class="input-help" aria-live="polite"></p>
-            </div>
-
-            <div class="input-group matrix-input" style="display: none;">
-                <label>Upload your comparison matrix:</label>
-                <div class="file-upload">
-                    <input type="file" id="matrixFileInput" accept=".csv" class="input-field">
-                    <p class="input-help">Select a previously exported comparison matrix CSV file</p>
-                </div>
-            </div>
-
-            <div class="button-container">
-                <button class="btn btn-primary" id="startComparisonBtn">Continue →</button>
-                <button class="btn btn-secondary" id="tryExampleBtn" type="button">Try an example</button>
-            </div>
-        </div>
-
-        <!-- Comparison Section -->
-        <div id="comparison" class="card" style="display: none;">
-            <div class="comparison-container">
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill"></div>
+        <main>
+            <div class="step-indicator" data-step="1">
+                <div class="steps-container">
+                    <div class="step active">
+                        <div class="step-number">1</div>
+                        <span>Setup</span>
                     </div>
-                    <div class="progress-text" aria-live="polite"></div>
-                </div>
-
-                <h2 id="comparisonQuestion">Which is more important?</h2>
-
-                <div class="comparison-elements">
-                    <div class="element-card" id="optionA"></div>
-                    <div class="element-card" id="optionB"></div>
-                </div>
-
-                <div class="segmented-container" id="comparisonChoices">
-                    <fieldset class="segmented" aria-label="Select which option matters more">
-                        <legend class="visually-hidden">Relative importance choices</legend>
-                        <input type="radio" id="choice-0" name="comparisonChoice" value="0">
-                        <label for="choice-0" id="choiceLabel0">Much more A</label>
-
-                        <input type="radio" id="choice-1" name="comparisonChoice" value="1">
-                        <label for="choice-1" id="choiceLabel1">More A</label>
-
-                        <input type="radio" id="choice-2" name="comparisonChoice" value="2" checked>
-                        <label for="choice-2" id="choiceLabel2">Equal</label>
-
-                        <input type="radio" id="choice-3" name="comparisonChoice" value="3">
-                        <label for="choice-3" id="choiceLabel3">More B</label>
-
-                        <input type="radio" id="choice-4" name="comparisonChoice" value="4">
-                        <label for="choice-4" id="choiceLabel4">Much more B</label>
-                    </fieldset>
-                </div>
-
-                <div class="comparison-navigation">
-                    <button class="btn" id="prevComparisonBtn" disabled>&larr; Previous</button>
-                    <button class="btn btn-primary" id="submitComparisonBtn">Continue</button>
-                    <button class="btn" id="nextComparisonBtn" disabled>Next &rarr;</button>
+                    <div class="step future">
+                        <div class="step-number">2</div>
+                        <span>Compare</span>
+                    </div>
+                    <div class="step future">
+                        <div class="step-number">3</div>
+                        <span>Results</span>
+                    </div>
+                    <div class="step future">
+                        <div class="step-number">4</div>
+                        <span>Evaluate</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Results Section -->
-        <div id="results" class="card" style="display: none;">
-            <h2>Results</h2>
-            <div id="resultMatrix"></div>
-            <div class="button-container">
-                <button class="btn btn-success" id="downloadCsvBtn">Download Results (CSV)</button>
-                <button class="btn btn-primary" id="startEvaluationBtn">Evaluate Options</button>
+            <!-- Setup Section -->
+            <div id="setup" class="card">
+                <div class="input-group">
+                    <label>How would you like to start?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="comparisonType" value="importance" checked>
+                            <span class="radio-label">New Comparison</span>
+                            <span class="radio-help">Start a fresh comparison between criteria</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="comparisonType" value="matrix">
+                            <span class="radio-label">Use Existing Matrix</span>
+                            <span class="radio-help">Upload a previously exported comparison matrix</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group comparison-input">
+                    <label for="elements" id="elementsLabel">Enter criteria to compare</label>
+                    <input type="text" id="elements" class="input-field"
+                        placeholder="Enter items separated by commas (e.g., Price, Quality, Speed)">
+                    <p id="workloadPreview" class="input-help" aria-live="polite"></p>
+                </div>
+
+                <div class="input-group matrix-input" style="display: none;">
+                    <label>Upload your comparison matrix:</label>
+                    <div class="file-upload">
+                        <input type="file" id="matrixFileInput" accept=".csv" class="input-field">
+                        <p class="input-help">Select a previously exported comparison matrix CSV file</p>
+                    </div>
+                </div>
+
+                <div class="button-container">
+                    <button class="btn btn-primary" id="startComparisonBtn">Continue →</button>
+                    <button class="btn btn-secondary" id="tryExampleBtn" type="button">Try an example</button>
+                </div>
             </div>
-        </div>
 
-        <!-- Evaluation Section -->
-        <div id="evaluation" class="card" style="display: none;">
-            <h2>Evaluate Options</h2>
-            <p class="input-help">Add options by using the + in the table header. Rename by editing the header.</p>
+            <!-- Comparison Section -->
+            <div id="comparison" class="card" style="display: none;">
+                <div class="comparison-container">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <div class="progress-text" aria-live="polite"></div>
+                    </div>
 
-            <div id="evaluationMatrix"></div>
-        </div>
+                    <h2 id="comparisonQuestion">Which is more important?</h2>
 
-        <!-- Final Results Section -->
-        <div id="finalResults" class="card" style="display: none;">
-            <h2>Final Rankings</h2>
-            <div id="rankingResults"></div>
-            <div class="button-container">
-                <button class="btn btn-success" id="downloadFinalResultsBtn">
-                    <span class="btn-icon">↓</span>
-                    Download Final Results (CSV)
-                </button>
-                <button class="btn btn-primary" id="startOverBtn">Start Over</button>
+                    <div class="comparison-elements">
+                        <div class="element-card" id="optionA"></div>
+                        <div class="element-card" id="optionB"></div>
+                    </div>
+
+                    <div class="segmented-container" id="comparisonChoices">
+                        <fieldset class="segmented" aria-label="Select which option matters more">
+                            <legend class="visually-hidden">Relative importance choices</legend>
+                            <input type="radio" id="choice-0" name="comparisonChoice" value="0">
+                            <label for="choice-0" id="choiceLabel0">Much more A</label>
+
+                            <input type="radio" id="choice-1" name="comparisonChoice" value="1">
+                            <label for="choice-1" id="choiceLabel1">More A</label>
+
+                            <input type="radio" id="choice-2" name="comparisonChoice" value="2" checked>
+                            <label for="choice-2" id="choiceLabel2">Equal</label>
+
+                            <input type="radio" id="choice-3" name="comparisonChoice" value="3">
+                            <label for="choice-3" id="choiceLabel3">More B</label>
+
+                            <input type="radio" id="choice-4" name="comparisonChoice" value="4">
+                            <label for="choice-4" id="choiceLabel4">Much more B</label>
+                        </fieldset>
+                    </div>
+
+                    <div class="comparison-navigation">
+                        <button class="btn" id="prevComparisonBtn" disabled>&larr; Previous</button>
+                        <button class="btn btn-primary" id="submitComparisonBtn">Continue</button>
+                        <button class="btn" id="nextComparisonBtn" disabled>Next &rarr;</button>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Results Section -->
+            <div id="results" class="card" style="display: none;">
+                <h2>Results</h2>
+                <div id="resultMatrix"></div>
+                <div class="button-container">
+                    <button class="btn btn-success" id="downloadCsvBtn">Download Results (CSV)</button>
+                    <button class="btn btn-primary" id="startEvaluationBtn">Evaluate Options</button>
+                </div>
+            </div>
+
+            <!-- Evaluation Section -->
+            <div id="evaluation" class="card" style="display: none;">
+                <h2>Evaluate Options</h2>
+                <p class="input-help">Add options by using the + in the table header. Rename by editing the header.</p>
+
+                <div id="evaluationMatrix"></div>
+            </div>
+
+            <!-- Final Results Section -->
+            <div id="finalResults" class="card" style="display: none;">
+                <h2>Final Rankings</h2>
+                <div id="rankingResults"></div>
+                <div class="button-container">
+                    <button class="btn btn-success" id="downloadFinalResultsBtn">
+                        <span class="btn-icon">↓</span>
+                        Download Final Results (CSV)
+                    </button>
+                    <button class="btn btn-primary" id="startOverBtn">Start Over</button>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="script.js"></script>
