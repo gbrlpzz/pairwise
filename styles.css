@@ -1660,21 +1660,30 @@ body {
 
 .tab-button {
     padding: 0.75rem 1.5rem;
-    border: none;
-    background: none;
+    border: var(--border-width-sm) solid var(--border-color);
+    background: var(--surface);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
     flex: 1;
     text-align: center;
-    font-weight: 500;
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
 }
 
 .tab-button.active {
-    background: var(--surface);
-    color: var(--primary-color);
+    background: var(--primary-color);
+    color: var(--text-on-primary);
     box-shadow: var(--shadow-sm);
+    transform: none;
 }
 
 /* Add these new styles for the download button states */
