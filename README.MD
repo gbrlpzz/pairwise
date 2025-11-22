@@ -59,7 +59,7 @@ The process happens in 4 steps:
 
 ## Usage
 
-1. Visit the tool at https://pairwise-compare.vercel.app/
+1. Visit the tool at https://compare.gbrlpzz.com/
 2. Choose between starting a new comparison or uploading an existing matrix
 3. Follow the step-by-step process
 4. Download your results or continue to evaluate options
