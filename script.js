@@ -246,7 +246,7 @@ function updateUILanguage() {
     }
 }
 
-// Update the unified preference slider labels for the current pair
+// Update the unified preference picker labels for the current pair
 function updateChoiceLabels(i, j) {
     const a = elements[i];
     const b = elements[j];
@@ -866,6 +866,7 @@ function calculateFinalResults() {
     // Calculate weighted scores using saved ratings
     const results = options.map(option => {
         let totalScore = 0;
+
         criteria.forEach((criterion, i) => {
             const entry = savedData.evaluationData.ratings.find(r => r.criterion === criterion && r.option === option);
             if (entry && typeof entry.rating === 'number') {
@@ -996,7 +997,7 @@ function showCurrentComparison() {
         comp.optionA === elements[i] && comp.optionB === elements[j]
     );
     
-    // Set slider value based on existing comparison or default to center
+    // Set picker value based on existing comparison or default to center
     const choiceToSelect = existingComparison ? existingComparison.value : 2;
     document.getElementById('comparisonSlider').value = String(choiceToSelect);
     updateChoiceSelection();
@@ -1355,15 +1356,13 @@ function setupKeyboardNavigation() {
                 case 'ArrowLeft':
                     {
                         const next = Math.max(0, current - 1);
-                        slider.value = String(next);
-                        updateChoiceSelection();
+                        selectComparisonChoice(next);
                     }
                     break;
                 case 'ArrowRight':
                     {
                         const next = Math.min(4, current + 1);
-                        slider.value = String(next);
-                        updateChoiceSelection();
+                        selectComparisonChoice(next);
                     }
                     break;
                 case 'Enter':
@@ -1410,7 +1409,7 @@ function showHelp(step) {
         },
         2: {
             title: 'Making Comparisons',
-            content: 'Use the slider to indicate relative importance...'
+            content: 'Use the five-level picker to indicate relative importance...'
         },
         // ... more help content
     };
