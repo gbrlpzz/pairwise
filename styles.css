@@ -638,17 +638,38 @@ input[type="file"]::file-selector-button {
     box-shadow: 1px 0 var(--separator);
 }
 .evaluation-table thead th:first-child { z-index: 3; background: var(--surface-raised); }
-.option-header { display: flex; align-items: center; gap: 6px; min-width: 180px; }
-.option-name-input { width: 150px; min-height: 40px; padding: 8px 10px; }
-.rating-input { width: 74px; min-height: 44px; padding: 8px; text-align: center; font-variant-numeric: tabular-nums; }
-
-.rating-help { margin: 24px 0; padding: 18px; border-radius: var(--radius-md); background: var(--fill); }
-.rating-help h4 { margin-bottom: 6px; }
-.rating-help > p { margin-bottom: 14px; color: var(--secondary-label); }
-.rating-scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
-.rating-point { padding: 12px 8px; border-radius: 10px; background: var(--surface-solid); text-align: center; }
-.rating-point strong { display: block; margin-bottom: 3px; color: var(--accent-strong); font-family: var(--mono); }
-.rating-point span { color: var(--secondary-label); font-size: 12px; }
+.option-adder {
+    margin: 22px 0;
+    padding: 16px;
+    border: 1px solid var(--separator);
+    border-radius: var(--radius-md);
+    background: var(--fill);
+}
+.option-adder > label { display: block; margin-bottom: 9px; font-weight: 700; }
+.option-adder-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.option-adder-row .input-field { min-width: 0; }
+.evaluation-empty { padding: 32px 20px; border: 1px dashed var(--separator-strong); border-radius: var(--radius-md); text-align: center; }
+.evaluation-empty h3 { margin: 0 0 6px; }
+.evaluation-empty p { margin: 0; color: var(--secondary-label); }
+.evaluation-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 20px 0; }
+.evaluation-option-card { min-width: 0; overflow: hidden; border: 1px solid var(--separator); border-radius: var(--radius-lg); background: var(--surface-solid); }
+.evaluation-option-header { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; padding: 12px; border-bottom: 1px solid var(--separator); background: var(--surface-raised); }
+.evaluation-option-header label { min-width: 0; }
+.option-name-input { width: 100%; min-height: 44px; padding: 9px 11px; font-size: 16px; font-weight: 700; }
+.evaluation-criteria { display: grid; }
+.evaluation-criterion { padding: 15px 14px; border-bottom: 1px solid var(--separator); }
+.evaluation-criterion:last-child { border-bottom: 0; }
+.evaluation-criterion.is-incomplete { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.criterion-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.criterion-heading h4 { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+.rating-control { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; padding: 4px; border-radius: 14px; background: var(--fill); }
+.rating-choice { min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--secondary-label); font: 700 14px/1 var(--mono); cursor: pointer; transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease; }
+.rating-choice:hover { background: var(--fill-hover); color: var(--label); }
+.rating-choice:active { transform: scale(0.94); }
+.rating-choice.is-selected { background: var(--accent-strong); color: #fff; box-shadow: 0 1px 5px color-mix(in srgb, var(--accent-strong) 35%, transparent); }
+.rating-caption { display: grid; grid-template-columns: 1fr auto 1fr; gap: 6px; margin-top: 7px; color: var(--tertiary-label); font-size: 11px; }
+.rating-caption strong { color: var(--secondary-label); font-size: 11px; text-align: center; }
+.rating-caption span:last-child { text-align: right; }
 
 .final-rankings { display: grid; gap: 10px; margin: 20px 0; }
 .ranking-item h3 { margin: 0 0 10px; font-size: 17px; }
@@ -751,7 +772,13 @@ input[type="file"]::file-selector-button {
     #submitComparisonBtn { grid-column: 1 / -1; grid-row: 1; }
     .button-container { display: grid; grid-template-columns: 1fr; }
     .button-container .btn { width: 100%; }
-    .rating-scale { grid-template-columns: repeat(5, minmax(58px, 1fr)); overflow-x: auto; padding-bottom: 4px; }
+    .evaluation-options { grid-template-columns: 1fr; }
+    .option-adder { margin-inline: -2px; padding: 14px; }
+    .option-adder-row { grid-template-columns: 1fr; }
+    .option-adder-row .btn { width: 100%; }
+    .evaluation-criterion { padding: 15px 12px; }
+    .rating-control { gap: 4px; }
+    .rating-choice { min-height: 48px; }
     .footer { flex-direction: column; gap: 4px; }
 }
 
