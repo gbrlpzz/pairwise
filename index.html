@@ -75,19 +75,19 @@
                 <div class="steps-container">
                     <button class="step active" type="button">
                         <span class="step-number" aria-hidden="true">1</span>
-                        <span>Setup</span>
+                        <span class="step-copy"><strong>Setup</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">2</span>
-                        <span>Compare</span>
+                        <span class="step-copy"><strong>Compare</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">3</span>
-                        <span>Results</span>
+                        <span class="step-copy"><strong>Results</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">4</span>
-                        <span>Evaluate</span>
+                        <span class="step-copy"><strong>Evaluate</strong><small></small></span>
                     </button>
                 </div>
             </nav>
@@ -162,16 +162,13 @@
                             <span>Preference</span>
                             <span id="preferenceLabelB">Option B</span>
                         </div>
-                        <div class="effort-slider" style="--slider-fill: 50%">
-                            <div class="effort-slider-track">
-                                <span class="effort-slider-fill" aria-hidden="true"></span>
-                                <div class="effort-slider-points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-                                <input type="range" id="comparisonSlider" min="0" max="4" step="1" value="2"
-                                    aria-label="Relative importance" aria-valuetext="Equal">
-                            </div>
-                            <div class="effort-slider-labels" aria-hidden="true">
-                                <span>Strongly</span><span>Slightly</span><span>Equal</span><span>Slightly</span><span>Strongly</span>
-                            </div>
+                        <div class="level-picker" id="comparisonLevelPicker" role="group" aria-label="Relative importance">
+                            <input type="hidden" id="comparisonSlider" value="2">
+                            <button type="button" data-value="0" aria-pressed="false"><span>1</span><small>Strongly</small></button>
+                            <button type="button" data-value="1" aria-pressed="false"><span>2</span><small>Slightly</small></button>
+                            <button type="button" data-value="2" aria-pressed="true"><span>3</span><small>Equal</small></button>
+                            <button type="button" data-value="3" aria-pressed="false"><span>4</span><small>Slightly</small></button>
+                            <button type="button" data-value="4" aria-pressed="false"><span>5</span><small>Strongly</small></button>
                         </div>
                     </div>
 
