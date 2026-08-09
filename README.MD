@@ -15,7 +15,7 @@ Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 ## The workflow
 
 1. **Setup** — enter one criterion per line (commas also work) or import a previously exported matrix. Pairwise rejects duplicate names and previews the exact number of comparisons before starting.
-2. **Compare** — tap either criterion or choose its relative importance on a compact five-point preference control.
+2. **Compare** — tap either criterion or drag the same filled five-position control used throughout the app.
 3. **Results** — inspect criterion weights in a ranked summary or detailed matrix and export the data.
 4. **Evaluate** — move through one candidate option at a time, drag a 1–5 slider for each criterion, and calculate the final ranking from the guided flow.
 
@@ -39,7 +39,7 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 
 - four-stage progress navigation uses full labels on desktop and numbered compact controls on narrow screens
 - pairwise criteria remain side by side where space permits and stack into a clear A/or/B sequence on mobile
-- the five-value comparison control stays compact and horizontal on mobile, with large discrete tap targets and labelled endpoints
+- comparison and evaluation share one compact, filled left-to-right slider language with five labelled positions
 - action rows become full-width, thumb-reachable controls on small screens
 - result tables use bounded horizontal scrolling instead of shrinking controls or text
 - evaluation uses one responsive option page at a time, draggable 1–5 sliders, and a single compact progress indicator rather than a wide or infinitely scrolling matrix
