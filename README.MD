@@ -1,6 +1,6 @@
 # Pairwise
 
-A private, browser-based decision tool for Analytic Hierarchy Process (AHP) and pairwise comparison. Pairwise turns a complex choice into a guided sequence: define criteria, compare them two at a time, inspect the resulting weights, and evaluate candidate options.
+A private, browser-based decision tool for Analytic Hierarchy Process (AHP) and pairwise comparison. Pairwise turns a complex choice into a guided sequence: define criteria, compare them two at a time, inspect the resulting weights, and evaluate candidate options!
 
 Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 
