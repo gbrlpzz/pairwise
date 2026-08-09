@@ -87,6 +87,8 @@ This implementation is intended as a practical decision aid. For research or hig
 
 Pairwise is intentionally dependency-free: plain HTML, CSS, and JavaScript with no build step.
 
+Co-authored by Gabriele Pizzi and [Hector Gost](https://hectorgostgodoywebside.vercel.app/).
+
 ```bash
 git clone https://github.com/gbrlpzz/pairwise.git
 cd pairwise
