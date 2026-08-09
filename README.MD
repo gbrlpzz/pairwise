@@ -14,7 +14,7 @@ Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 
 ## The workflow
 
-1. **Setup** — enter the criteria that matter or import a previously exported matrix.
+1. **Setup** — enter one criterion per line (commas also work) or import a previously exported matrix. Pairwise rejects duplicate names and previews the exact number of comparisons before starting.
 2. **Compare** — choose the relative importance of each pair on a five-point scale.
 3. **Results** — inspect criterion weights in a ranked summary or detailed matrix and export the data.
 4. **Evaluate** — add candidate options, score each from 1–5 against every criterion, and calculate the final ranking.
@@ -31,6 +31,7 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 - 17 px default body text and at least 44 px interactive targets
 - semantic buttons for navigation, tabs, appearance, and actions
 - familiar grouped controls, filled primary actions, and restrained secondary actions
+- optically normalized 44 px header controls with explicit 18 px icon boxes
 - content hierarchy based on title, explanation, control group, and next action
 - a single vertical workspace that remains legible at high zoom
 
@@ -48,6 +49,7 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 - visible `:focus-visible` rings with system-blue semantics
 - correctly labelled progress, radio groups, tabs, step navigation, file input, and theme control
 - inline error status and focus recovery for invalid or incomplete tasks
+- live criteria validation, duplicate detection, workload preview, and `Ctrl/⌘ + Enter` submission
 - persistent labels and instructions; meaning never depends on placeholder text alone
 - selected, invalid, completed, and current states are exposed semantically as well as visually
 - `prefers-reduced-motion` removes non-essential animation and smooth scrolling
