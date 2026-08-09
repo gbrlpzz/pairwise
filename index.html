@@ -75,19 +75,19 @@
                 <div class="steps-container">
                     <button class="step active" type="button">
                         <span class="step-number" aria-hidden="true">1</span>
-                        <span>Setup</span>
+                        <span class="step-copy"><strong>Setup</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">2</span>
-                        <span>Compare</span>
+                        <span class="step-copy"><strong>Compare</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">3</span>
-                        <span>Results</span>
+                        <span class="step-copy"><strong>Results</strong><small></small></span>
                     </button>
                     <button class="step future" type="button">
                         <span class="step-number" aria-hidden="true">4</span>
-                        <span>Evaluate</span>
+                        <span class="step-copy"><strong>Evaluate</strong><small></small></span>
                     </button>
                 </div>
             </nav>
@@ -156,29 +156,20 @@
                         <button type="button" class="element-card" id="optionB" aria-pressed="false"></button>
                     </div>
 
-                    <div class="segmented-container" id="comparisonChoices">
+                    <div class="preference-control" id="comparisonChoices">
                         <div class="preference-scale-labels" aria-hidden="true">
                             <span id="preferenceLabelA">Option A</span>
                             <span>Preference</span>
                             <span id="preferenceLabelB">Option B</span>
                         </div>
-                        <fieldset class="segmented" aria-label="Select which option matters more">
-                            <legend class="visually-hidden">Relative importance choices</legend>
-                            <input type="radio" id="choice-0" name="comparisonChoice" value="0">
-                            <label for="choice-0" id="choiceLabel0">Strongly</label>
-
-                            <input type="radio" id="choice-1" name="comparisonChoice" value="1">
-                            <label for="choice-1" id="choiceLabel1">Slightly</label>
-
-                            <input type="radio" id="choice-2" name="comparisonChoice" value="2" checked>
-                            <label for="choice-2" id="choiceLabel2">Equal</label>
-
-                            <input type="radio" id="choice-3" name="comparisonChoice" value="3">
-                            <label for="choice-3" id="choiceLabel3">Slightly</label>
-
-                            <input type="radio" id="choice-4" name="comparisonChoice" value="4">
-                            <label for="choice-4" id="choiceLabel4">Strongly</label>
-                        </fieldset>
+                        <div class="level-picker" id="comparisonLevelPicker" role="group" aria-label="Relative importance">
+                            <input type="hidden" id="comparisonSlider" value="2">
+                            <button type="button" data-value="0" aria-pressed="false"><span>1</span><small>Strongly</small></button>
+                            <button type="button" data-value="1" aria-pressed="false"><span>2</span><small>Slightly</small></button>
+                            <button type="button" data-value="2" aria-pressed="true"><span>3</span><small>Equal</small></button>
+                            <button type="button" data-value="3" aria-pressed="false"><span>4</span><small>Slightly</small></button>
+                            <button type="button" data-value="4" aria-pressed="false"><span>5</span><small>Strongly</small></button>
+                        </div>
                     </div>
 
                     <div class="comparison-navigation">
