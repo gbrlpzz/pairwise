@@ -48,13 +48,6 @@ const COMPARISON_TYPES = {
     importance: {
         itemLabel: 'parameters to compare',
         placeholder: 'e.g., Price, Quality, Speed, Reliability',
-        sliderLabels: [
-            'Much more important',
-            'More important',
-            'Equally important',
-            'More important',
-            'Much more important'
-        ],
         question: 'Which is more important?',
         resultLabel: 'Importance Score',
         downloadFileName: 'importance_comparison_matrix.csv'
@@ -144,6 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('input[name="comparisonChoice"]').forEach(r => {
         r.addEventListener('change', updateChoiceSelection);
     });
+    document.getElementById('optionA').addEventListener('click', () => selectComparisonChoice(0));
+    document.getElementById('optionB').addEventListener('click', () => selectComparisonChoice(4));
 
     // Add button event listeners
     document.getElementById('startComparisonBtn').addEventListener('click', startComparison);
@@ -253,16 +248,11 @@ function updateUILanguage() {
 
 // Update segmented choice labels for current pair
 function updateChoiceLabels(i, j) {
-    const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
-    const labels = COMPARISON_TYPES[selectedType].sliderLabels;
     const a = elements[i];
     const b = elements[j];
-    // 0,1 favor A; 2 equal; 3,4 favor B
-    document.getElementById('choiceLabel0').textContent = `${labels[0]}: ${a}`;
-    document.getElementById('choiceLabel1').textContent = `${labels[1]}: ${a}`;
-    document.getElementById('choiceLabel2').textContent = labels[2];
-    document.getElementById('choiceLabel3').textContent = `${labels[3]}: ${b}`;
-    document.getElementById('choiceLabel4').textContent = `${labels[4]}: ${b}`;
+    document.getElementById('preferenceLabelA').textContent = a;
+    document.getElementById('preferenceLabelB').textContent = b;
+    document.getElementById('comparisonChoices').setAttribute('aria-label', `Preference scale from ${a} to ${b}`);
 }
 
 function updateStepIndicator(stepNumber) {
@@ -346,6 +336,15 @@ function updateChoiceSelection() {
     const optionB = document.getElementById('optionB');
     optionA.classList.toggle('selected', value < 2);
     optionB.classList.toggle('selected', value > 2);
+    optionA.setAttribute('aria-pressed', String(value < 2));
+    optionB.setAttribute('aria-pressed', String(value > 2));
+}
+
+function selectComparisonChoice(value) {
+    const input = document.querySelector(`input[name="comparisonChoice"][value="${value}"]`);
+    if (!input) return;
+    input.checked = true;
+    updateChoiceSelection();
 }
 
 function submitComparison() {
