@@ -134,10 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateUILanguage();
 
-    // Choice group (segmented) listeners
-    document.querySelectorAll('input[name="comparisonChoice"]').forEach(r => {
-        r.addEventListener('change', updateChoiceSelection);
-    });
+    document.getElementById('comparisonSlider').addEventListener('input', updateChoiceSelection);
     document.getElementById('optionA').addEventListener('click', () => selectComparisonChoice(0));
     document.getElementById('optionB').addEventListener('click', () => selectComparisonChoice(4));
 
@@ -247,7 +244,7 @@ function updateUILanguage() {
     }
 }
 
-// Update segmented choice labels for current pair
+// Update the unified preference slider labels for the current pair
 function updateChoiceLabels(i, j) {
     const a = elements[i];
     const b = elements[j];
@@ -331,8 +328,11 @@ function startComparison() {
 }
 
 function updateChoiceSelection() {
-    const selected = document.querySelector('input[name="comparisonChoice"]:checked');
-    const value = selected ? parseInt(selected.value) : 2;
+    const slider = document.getElementById('comparisonSlider');
+    const value = Number(slider.value);
+    const labels = ['Strongly left', 'Slightly left', 'Equal', 'Slightly right', 'Strongly right'];
+    slider.closest('.effort-slider').style.setProperty('--slider-fill', `${(value / 4) * 100}%`);
+    slider.setAttribute('aria-valuetext', labels[value]);
     const optionA = document.getElementById('optionA');
     const optionB = document.getElementById('optionB');
     optionA.classList.toggle('selected', value < 2);
@@ -342,16 +342,14 @@ function updateChoiceSelection() {
 }
 
 function selectComparisonChoice(value) {
-    const input = document.querySelector(`input[name="comparisonChoice"][value="${value}"]`);
-    if (!input) return;
-    input.checked = true;
+    const input = document.getElementById('comparisonSlider');
+    input.value = String(value);
     updateChoiceSelection();
 }
 
 function submitComparison() {
     const [i, j] = comparisons[currentComparison];
-    const selected = document.querySelector('input[name="comparisonChoice"]:checked');
-    const sliderValue = selected ? parseInt(selected.value) : 2;
+    const sliderValue = Number(document.getElementById('comparisonSlider').value);
     
     // Convert slider value to matrix values
     const values = [5, 3, 1, 1/3, 1/5];
@@ -685,8 +683,9 @@ function setEvaluationRating(input) {
 
     const criterionCard = input.closest('.evaluation-criterion');
     criterionCard.classList.remove('is-unrated', 'is-incomplete');
-    criterionCard.querySelector('.rating-value').textContent =
-        ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'][rating - 1];
+    const label = ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'][rating - 1];
+    input.closest('.effort-slider').style.setProperty('--slider-fill', `${(rating / 5) * 100}%`);
+    input.setAttribute('aria-valuetext', label);
     updateEvaluationProgress();
 }
 
@@ -727,14 +726,15 @@ function createEvaluationMatrix(options) {
                         <h4>${safeCriterion}</h4>
                         <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                     </div>
-                    <input type="range" class="rating-slider" min="1" max="5" step="1"
-                           value="${selectedRating ?? 3}"
-                           data-criterion="${safeCriterion}" data-option="${safeOption}"
-                           aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5">
-                    <div class="rating-caption" aria-live="polite">
-                        <span>1&nbsp; Poor</span>
-                        <strong class="rating-value">${selectedRating ? ratingLabels[selectedRating - 1] : 'Drag to rate'}</strong>
-                        <span>Excellent&nbsp; 5</span>
+                    <div class="effort-slider rating-effort-slider" style="--slider-fill:${((selectedRating ?? 3) / 5) * 100}%">
+                        <input type="range" class="rating-slider" min="1" max="5" step="1"
+                               value="${selectedRating ?? 3}"
+                               data-criterion="${safeCriterion}" data-option="${safeOption}"
+                               aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5"
+                               aria-valuetext="${selectedRating ? ratingLabels[selectedRating - 1] : 'Not rated'}">
+                        <div class="effort-slider-labels" aria-hidden="true">
+                            <span>Poor</span><span>Fair</span><span>Good</span><span>Very good</span><span>Excellent</span>
+                        </div>
                     </div>
                 </section>`;
         }).join('');
@@ -742,8 +742,8 @@ function createEvaluationMatrix(options) {
         return `
             <article class="evaluation-option-card" aria-label="Option ${currentEvaluationOption + 1} of ${options.length}">
                 <header class="evaluation-option-header">
-                    <label>
-                        <span class="visually-hidden">Option name</span>
+                    <label class="guided-option-title">
+                        <span>Currently evaluating</span>
                         <input class="option-name-input" value="${safeOption}" data-original-name="${safeOption}" aria-label="Rename ${safeOption}">
                     </label>
                     <button type="button" class="btn btn-icon remove-option" data-option="${safeOption}" aria-label="Remove ${safeOption}">×</button>
@@ -756,16 +756,16 @@ function createEvaluationMatrix(options) {
     const completed = savedData.evaluationData.ratings.filter(r => r.rating >= 1 && r.rating <= 5).length;
     const progressPercent = totalCells ? (Math.min(completed, totalCells) / totalCells) * 100 : 0;
     
-    let html = `
-        <form class="option-adder" id="optionAdder">
-            <label for="newOptionName">Add an option</label>
+    const optionAdder = `
+        <form class="option-adder${options.length ? ' is-compact' : ''}" id="optionAdder">
+            <label for="newOptionName">${options.length ? 'Add another option' : 'Add an option'}</label>
             <div class="option-adder-row">
                 <input id="newOptionName" class="input-field" autocomplete="off" placeholder="e.g. Option A">
                 <button type="submit" class="btn btn-primary">Add</button>
             </div>
-        </form>
+        </form>`;
 
-        ${options.length
+    let html = options.length
             ? `<div class="guided-progress">
                     <div class="guided-progress-meta">
                         <strong>Option ${currentEvaluationOption + 1} of ${options.length}</strong>
@@ -779,13 +779,13 @@ function createEvaluationMatrix(options) {
                <div class="evaluation-page-navigation">
                     <button type="button" class="btn" id="previousEvaluationOption" ${currentEvaluationOption === 0 ? 'disabled' : ''}>← Previous</button>
                     <button type="button" class="btn btn-primary" id="nextEvaluationOption">${currentEvaluationOption === options.length - 1 ? 'Review results' : 'Next →'}</button>
-               </div>`
-            : `<div class="evaluation-empty">
+               </div>
+               ${optionAdder}`
+            : `${optionAdder}
+               <div class="evaluation-empty">
                     <h3>Start with the alternatives</h3>
                     <p>Add at least two options. Each will get its own simple rating card.</p>
-               </div>`}
-
-    `;
+               </div>`;
 
     const container = document.getElementById('evaluationMatrix');
     container.innerHTML = html;
@@ -999,10 +999,9 @@ function showCurrentComparison() {
         comp.optionA === elements[i] && comp.optionB === elements[j]
     );
     
-    // Set radio value based on existing comparison or default to center
+    // Set slider value based on existing comparison or default to center
     const choiceToSelect = existingComparison ? existingComparison.value : 2;
-    const input = document.querySelector(`input[name="comparisonChoice"][value="${choiceToSelect}"]`);
-    if (input) input.checked = true;
+    document.getElementById('comparisonSlider').value = String(choiceToSelect);
     updateChoiceSelection();
     updateNavigationButtons();
     
@@ -1352,21 +1351,21 @@ function updateProgressBar() {
 function setupKeyboardNavigation() {
     document.addEventListener('keydown', (e) => {
         if (currentStep === 2) {
-            const selected = document.querySelector('input[name="comparisonChoice"]:checked');
-            const current = selected ? parseInt(selected.value) : 2;
+            const slider = document.getElementById('comparisonSlider');
+            const current = Number(slider.value);
             switch(e.key) {
                 case 'ArrowLeft':
                     {
                         const next = Math.max(0, current - 1);
-                        const input = document.querySelector(`input[name="comparisonChoice"][value="${next}"]`);
-                        if (input) { input.checked = true; updateChoiceSelection(); }
+                        slider.value = String(next);
+                        updateChoiceSelection();
                     }
                     break;
                 case 'ArrowRight':
                     {
                         const next = Math.min(4, current + 1);
-                        const input = document.querySelector(`input[name="comparisonChoice"][value="${next}"]`);
-                        if (input) { input.checked = true; updateChoiceSelection(); }
+                        slider.value = String(next);
+                        updateChoiceSelection();
                     }
                     break;
                 case 'Enter':
