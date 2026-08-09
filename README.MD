@@ -17,7 +17,7 @@ Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 1. **Setup** — enter one criterion per line (commas also work) or import a previously exported matrix. Pairwise rejects duplicate names and previews the exact number of comparisons before starting.
 2. **Compare** — choose the relative importance of each pair on a five-point scale.
 3. **Results** — inspect criterion weights in a ranked summary or detailed matrix and export the data.
-4. **Evaluate** — add candidate options, score each from 1–5 against every criterion, and calculate the final ranking.
+4. **Evaluate** — add candidate options as cards, score each with touch-friendly 1–5 controls against every criterion, and calculate the final ranking.
 
 The app saves in-progress work to `localStorage`. Starting over removes decision data while preserving the selected appearance.
 
@@ -41,8 +41,8 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 - pairwise options remain side by side where space permits and stack into a clear A/or/B sequence on mobile
 - the five-value comparison control becomes a touch-friendly vertical choice list on mobile
 - action rows become full-width, thumb-reachable controls on small screens
-- result and evaluation tables use bounded horizontal scrolling instead of shrinking controls or text
-- the first evaluation column remains visible while wide option matrices scroll
+- result tables use bounded horizontal scrolling instead of shrinking controls or text
+- evaluation uses responsive option cards and large 1–5 tap targets rather than a wide editable matrix
 
 ### Accessibility
 
