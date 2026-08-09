@@ -114,17 +114,23 @@ function redo() {
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize theme
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    // Theme toggle functionality
+    // Start from the system appearance and remember only an explicit choice.
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const savedTheme = localStorage.getItem('theme') || systemTheme;
     const themeToggle = document.getElementById('themeToggle');
+    const applyTheme = (theme) => {
+        document.documentElement.setAttribute('data-theme', theme);
+        const isDark = theme === 'dark';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Use light appearance' : 'Use dark appearance');
+        themeToggle.title = isDark ? 'Use light appearance' : 'Use dark appearance';
+    };
+    applyTheme(savedTheme);
+
     themeToggle.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        
-        document.documentElement.setAttribute('data-theme', newTheme);
+        applyTheme(newTheme);
         localStorage.setItem('theme', newTheme);
     });
     
@@ -271,7 +277,8 @@ function startComparison() {
             .filter(e => e.length > 0);
 
         if (elements.length < 2) {
-            alert('Please enter at least 2 items to compare');
+            showStatus('Enter at least two criteria, separated by commas.', 'error');
+            document.getElementById('elements').focus();
             return;
         }
 
@@ -316,7 +323,8 @@ function startComparison() {
                 showSectionForStep(4);
                 startEvaluation();
             } else {
-                alert('Please select a comparison matrix file');
+                showStatus('Choose a comparison matrix CSV before continuing.', 'error');
+                fileInput.focus();
             }
         }
     }
@@ -327,10 +335,8 @@ function updateChoiceSelection() {
     const value = selected ? parseInt(selected.value) : 2;
     const optionA = document.getElementById('optionA');
     const optionB = document.getElementById('optionB');
-    optionA.style.transform = value < 2 ? 'scale(1.05)' : 'scale(1)';
-    optionB.style.transform = value > 2 ? 'scale(1.05)' : 'scale(1)';
-    optionA.style.borderColor = value < 2 ? 'var(--primary-color)' : 'var(--border-color)';
-    optionB.style.borderColor = value > 2 ? 'var(--primary-color)' : 'var(--border-color)';
+    optionA.classList.toggle('selected', value < 2);
+    optionB.classList.toggle('selected', value > 2);
 }
 
 function submitComparison() {
@@ -408,12 +414,12 @@ function showResults() {
             <p>Here are your comparison results ranked by importance</p>
         </div>
 
-        <div class="results-tabs">
-            <button class="tab-button active" onclick="showResultsTab('summary')">Summary</button>
-            <button class="tab-button" onclick="showResultsTab('details')">Detailed Matrix</button>
+        <div class="results-tabs" role="tablist" aria-label="Result views">
+            <button class="tab-button active" type="button" role="tab" aria-selected="true" aria-controls="summary-tab" onclick="showResultsTab('summary', this)">Summary</button>
+            <button class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="details-tab" onclick="showResultsTab('details', this)">Detailed Matrix</button>
         </div>
 
-        <div id="summary-tab" class="results-summary">
+        <div id="summary-tab" class="results-summary" role="tabpanel">
             <ul class="summary-list">
                 ${rankedResults.map((result, index) => `
                     <li>
@@ -432,33 +438,36 @@ function showResults() {
             </ul>
         </div>
 
-        <div id="details-tab" class="detailed-results" style="display: none;">
+        <div id="details-tab" class="detailed-results" role="tabpanel" style="display: none;">
             <div class="results-wrapper">
                 <table class="result-table">
-                    <tr>
+                    <caption class="visually-hidden">Pairwise comparison matrix and calculated scores</caption>
+                    <thead><tr>
                         <th></th>
                         ${elements.map(e => `<th>${e}</th>`).join('')}
                         <th>Score</th>
                         <th>Percentage</th>
-                    </tr>
+                    </tr></thead>
+                    <tbody>
                     ${elements.map((element, i) => `
                         <tr>
-                            <th>${element}</th>
+                            <th scope="row">${element}</th>
                             ${matrix[i].map(value => `<td>${value.toFixed(2)}</td>`).join('')}
                             <td>${scores[i].toFixed(2)}</td>
                             <td>${percentages[i].toFixed(1)}%</td>
                         </tr>
                     `).join('')}
+                    </tbody>
                 </table>
             </div>
         </div>
 
         <div class="button-container">
-            <button class="btn btn-success" id="downloadCsvBtn">
+            <button class="btn btn-success" id="downloadCsvBtn" type="button">
                 <span class="btn-icon">↓</span>
                 Download Results (CSV)
             </button>
-            <button class="btn btn-primary" onclick="startEvaluation()">
+            <button class="btn btn-primary" type="button" onclick="startEvaluation()">
                 Continue to Evaluation
                 <span class="btn-icon">→</span>
             </button>
@@ -476,12 +485,14 @@ function showResults() {
 }
 
 // Add this function to handle tab switching
-function showResultsTab(tabName) {
+function showResultsTab(tabName, trigger) {
     // Update tab buttons
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
     });
-    event.target.classList.add('active');
+    trigger.classList.add('active');
+    trigger.setAttribute('aria-selected', 'true');
 
     // Show/hide content
     document.getElementById('summary-tab').style.display = 
@@ -544,7 +555,7 @@ function downloadCSV() {
 function startEvaluation() {
     // Ensure we have the matrix and elements
     if (!window.savedMatrix || !window.savedElements) {
-        alert('No comparison matrix available. Please complete the comparison first.');
+        showStatus('Complete a comparison before evaluating options.', 'error');
         navigateToStep(1);
         return;
     }
@@ -648,7 +659,8 @@ function handleRatingChange(input) {
     );
     
     if (input.value === '') {
-        input.style.borderColor = 'red';
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
         if (existingRatingIndex !== -1) {
             // Remove invalid rating
             savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
@@ -664,9 +676,11 @@ function handleRatingChange(input) {
             });
         }
         
-        input.style.borderColor = (rating >= 1 && rating <= 5) ? 'var(--primary-color)' : 'red';
+        input.classList.toggle('is-valid', rating >= 1 && rating <= 5);
+        input.classList.toggle('is-invalid', rating < 1 || rating > 5);
     } else {
-        input.style.borderColor = 'red';
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
         if (existingRatingIndex !== -1) {
             // Remove invalid rating
             savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
@@ -733,9 +747,9 @@ function createEvaluationMatrix(options) {
     criteria.forEach((criterion, i) => {
         html += `
             <tr>
-                <td scope="row">
+                <th scope="row">
                     ${criterion}
-                </td>
+                </th>
                 <td>
                     <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                 </td>
@@ -771,7 +785,7 @@ function createEvaluationMatrix(options) {
     </div>
 
     <div class="button-container">
-        <button onclick="calculateFinalResults()" class="btn btn-primary">
+        <button type="button" onclick="calculateFinalResults()" class="btn btn-primary">
             Calculate Results
         </button>
     </div>`;
@@ -801,6 +815,8 @@ function updateEvaluationProgress() {
     const progressText = container.querySelector('.progress-text');
     if (progressFill && progressText) {
         progressFill.style.width = `${progressPercent}%`;
+        const progressBar = progressFill.parentElement;
+        progressBar.setAttribute('aria-valuenow', String(Math.round(progressPercent)));
         progressText.textContent = `${completed}/${totalCells} cells completed`;
     }
 }
@@ -817,15 +833,16 @@ function calculateFinalResults() {
         const value = parseFloat(input.value);
         const na = input.parentElement.querySelector('.na-toggle input')?.checked === true;
         if (!na && (!value || value < 1 || value > 5)) {
-            input.style.borderColor = 'red';
+            input.classList.add('is-invalid');
             allValid = false;
         } else {
-            input.style.borderColor = '';
+            input.classList.remove('is-invalid');
         }
     });
 
     if (!allValid) {
-        alert('Please fill in all ratings with values between 1 and 5');
+        showStatus('Complete every rating with a value from 1 to 5.', 'error');
+        document.querySelector('.rating-input.is-invalid')?.focus();
         return;
     }
 
@@ -1039,10 +1056,13 @@ function updateStepIndicators() {
         if (index + 1 === currentStep) {
             step.classList.add('active');
             step.setAttribute('aria-current', 'step');
+            step.removeAttribute('aria-disabled');
         } else if (index + 1 < currentStep) {
             step.classList.add('completed');
+            step.removeAttribute('aria-disabled');
         } else {
             step.classList.add('future');
+            step.setAttribute('aria-disabled', 'true');
         }
     });
 
@@ -1292,13 +1312,19 @@ function validateElements(input) {
     
     if (elements.length < 2) {
         helpText.textContent = 'Please enter at least 2 items separated by commas';
-        helpText.style.color = '#ef4444';
-        input.style.borderColor = '#ef4444';
+        helpText.classList.add('validation-error');
+        helpText.classList.remove('validation-success');
+        input.classList.add('is-invalid');
+        input.classList.remove('is-valid');
+        input.setAttribute('aria-invalid', 'true');
         return false;
     } else {
         helpText.textContent = `${elements.length} items entered`;
-        helpText.style.color = '#10b981';
-        input.style.borderColor = '#10b981';
+        helpText.classList.add('validation-success');
+        helpText.classList.remove('validation-error');
+        input.classList.add('is-valid');
+        input.classList.remove('is-invalid');
+        input.removeAttribute('aria-invalid');
         return true;
     }
     
@@ -1408,7 +1434,7 @@ function showHelp(step) {
         <div class="help-content">
             <h3>${helpContent[step].title}</h3>
             <p>${helpContent[step].content}</p>
-            <button onclick="this.parentElement.parentElement.remove()">Got it</button>
+            <button type="button" onclick="this.parentElement.parentElement.remove()">Got it</button>
         </div>
     `;
     document.body.appendChild(modal);
@@ -1493,4 +1519,16 @@ function focusElement(selector) {
         el.setAttribute('tabindex', '-1');
     }
     el.focus({ preventScroll: false });
+}
+
+function showStatus(message, tone = 'info') {
+    const status = document.getElementById('appStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+    status.hidden = false;
+    window.clearTimeout(showStatus.timeoutId);
+    showStatus.timeoutId = window.setTimeout(() => {
+        status.hidden = true;
+    }, 6000);
 }
