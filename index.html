@@ -152,27 +152,32 @@
                     <h2 id="comparisonQuestion" tabindex="-1">Which is more important?</h2>
 
                     <div class="comparison-elements">
-                        <div class="element-card" id="optionA"></div>
-                        <div class="element-card" id="optionB"></div>
+                        <button type="button" class="element-card" id="optionA" aria-pressed="false"></button>
+                        <button type="button" class="element-card" id="optionB" aria-pressed="false"></button>
                     </div>
 
                     <div class="segmented-container" id="comparisonChoices">
+                        <div class="preference-scale-labels" aria-hidden="true">
+                            <span id="preferenceLabelA">Option A</span>
+                            <span>Preference</span>
+                            <span id="preferenceLabelB">Option B</span>
+                        </div>
                         <fieldset class="segmented" aria-label="Select which option matters more">
                             <legend class="visually-hidden">Relative importance choices</legend>
                             <input type="radio" id="choice-0" name="comparisonChoice" value="0">
-                            <label for="choice-0" id="choiceLabel0">Much more A</label>
+                            <label for="choice-0" id="choiceLabel0">Strongly</label>
 
                             <input type="radio" id="choice-1" name="comparisonChoice" value="1">
-                            <label for="choice-1" id="choiceLabel1">More A</label>
+                            <label for="choice-1" id="choiceLabel1">Slightly</label>
 
                             <input type="radio" id="choice-2" name="comparisonChoice" value="2" checked>
                             <label for="choice-2" id="choiceLabel2">Equal</label>
 
                             <input type="radio" id="choice-3" name="comparisonChoice" value="3">
-                            <label for="choice-3" id="choiceLabel3">More B</label>
+                            <label for="choice-3" id="choiceLabel3">Slightly</label>
 
                             <input type="radio" id="choice-4" name="comparisonChoice" value="4">
-                            <label for="choice-4" id="choiceLabel4">Much more B</label>
+                            <label for="choice-4" id="choiceLabel4">Strongly</label>
                         </fieldset>
                     </div>
 
