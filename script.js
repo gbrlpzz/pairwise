@@ -65,6 +65,7 @@ let comparisons = [];
 let currentComparison = 0;
 let matrix = [];
 let currentStep = 1;
+let currentEvaluationOption = 0;
 let savedData = {
     comparisonType: '',
     elements: [],
@@ -590,6 +591,7 @@ function startEvaluation() {
 
     // Update current step and show correct section
     currentStep = 4;
+    document.body.classList.add('guided-evaluation-active');
     updateStepIndicators();
     
     // Hide all sections first
@@ -600,27 +602,10 @@ function startEvaluation() {
     
     // Show evaluation section
     document.getElementById('evaluation').style.display = 'block';
-    // Ensure evaluation progress UI exists
-    const evalSection = document.getElementById('evaluation');
-    if (!evalSection.querySelector('.evaluation-progress')) {
-        const progress = document.createElement('div');
-        progress.className = 'progress-container evaluation-progress';
-        progress.innerHTML = `
-            <div class="progress-bar" role="progressbar" aria-label="Evaluation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                <div class="progress-fill"></div>
-            </div>
-            <div class="progress-text" aria-live="polite"></div>
-        `;
-        // Insert after the options input group
-        const inputGroup = evalSection.querySelector('.input-group');
-        if (inputGroup && inputGroup.nextSibling) {
-            evalSection.insertBefore(progress, inputGroup.nextSibling);
-        } else {
-            evalSection.prepend(progress);
-        }
-    }
-
-    // Render matrix with current options (can be 0, we show add controls in-table)
+    currentEvaluationOption = Math.min(
+        currentEvaluationOption,
+        Math.max(savedData.evaluationData.options.length - 1, 0)
+    );
     createEvaluationMatrix(savedData.evaluationData.options);
 
     // Smooth scroll to top
@@ -642,6 +627,7 @@ function addOption() {
         return;
     }
     savedData.evaluationData.options.push(candidate);
+    currentEvaluationOption = savedData.evaluationData.options.length - 1;
     saveToLocalStorage();
     createEvaluationMatrix(savedData.evaluationData.options);
     requestAnimationFrame(() => document.getElementById('newOptionName')?.focus());
@@ -677,15 +663,16 @@ function removeOption(name) {
     const idx = options.indexOf(name);
     if (idx === -1) return;
     options.splice(idx, 1);
+    currentEvaluationOption = Math.min(currentEvaluationOption, Math.max(options.length - 1, 0));
     // remove ratings for this option
     savedData.evaluationData.ratings = savedData.evaluationData.ratings.filter(r => r.option !== name);
     saveToLocalStorage();
     createEvaluationMatrix(savedData.evaluationData.options);
 }
 
-function setEvaluationRating(button) {
-    const { criterion, option } = button.dataset;
-    const rating = Number(button.dataset.rating);
+function setEvaluationRating(input) {
+    const { criterion, option } = input.dataset;
+    const rating = Number(input.value);
     const existingRatingIndex = savedData.evaluationData.ratings.findIndex(e => 
         e.criterion === criterion && e.option === option
     );
@@ -696,16 +683,19 @@ function setEvaluationRating(button) {
     }
     saveToLocalStorage();
 
-    const criterionCard = button.closest('.evaluation-criterion');
-    criterionCard.querySelectorAll('.rating-choice').forEach(choice => {
-        const selected = choice === button;
-        choice.classList.toggle('is-selected', selected);
-        choice.setAttribute('aria-pressed', String(selected));
-    });
+    const criterionCard = input.closest('.evaluation-criterion');
     criterionCard.classList.remove('is-unrated', 'is-incomplete');
-    criterionCard.querySelector('.rating-caption strong').textContent =
+    criterionCard.querySelector('.rating-value').textContent =
         ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'][rating - 1];
     updateEvaluationProgress();
+}
+
+function showEvaluationOption(index) {
+    const options = savedData.evaluationData.options;
+    if (!options.length) return;
+    currentEvaluationOption = Math.max(0, Math.min(index, options.length - 1));
+    createEvaluationMatrix(options);
+    requestAnimationFrame(() => document.querySelector('.evaluation-option-card input[type="range"]')?.focus());
 }
 
 function escapeHtml(value) {
@@ -721,7 +711,9 @@ function createEvaluationMatrix(options) {
     const criteria = window.savedElements;
     const weights = calculateWeights();
     const ratingLabels = ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
-    const optionCards = options.map(option => {
+    currentEvaluationOption = Math.min(currentEvaluationOption, Math.max(options.length - 1, 0));
+    const option = options[currentEvaluationOption];
+    const optionCard = option ? (() => {
         const safeOption = escapeHtml(option);
         const criteriaRows = criteria.map((criterion, i) => {
             const savedRating = savedData.evaluationData.ratings.find(e =>
@@ -729,40 +721,26 @@ function createEvaluationMatrix(options) {
             );
             const selectedRating = savedRating?.rating;
             const safeCriterion = escapeHtml(criterion);
-            const choices = ratingLabels.map((label, index) => {
-                const rating = index + 1;
-                const selected = selectedRating === rating;
-                return `
-                    <button type="button"
-                            class="rating-choice${selected ? ' is-selected' : ''}"
-                            data-criterion="${safeCriterion}"
-                            data-option="${safeOption}"
-                            data-rating="${rating}"
-                            aria-pressed="${selected}"
-                            aria-label="${safeOption}: ${safeCriterion}, ${rating} — ${label}">
-                        ${rating}
-                    </button>`;
-            }).join('');
-
             return `
                 <section class="evaluation-criterion${selectedRating ? '' : ' is-unrated'}">
                     <div class="criterion-heading">
                         <h4>${safeCriterion}</h4>
                         <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                     </div>
-                    <div class="rating-control" role="group" aria-label="Rate ${safeOption} for ${safeCriterion}">
-                        ${choices}
-                    </div>
+                    <input type="range" class="rating-slider" min="1" max="5" step="1"
+                           value="${selectedRating ?? 3}"
+                           data-criterion="${safeCriterion}" data-option="${safeOption}"
+                           aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5">
                     <div class="rating-caption" aria-live="polite">
                         <span>1&nbsp; Poor</span>
-                        <strong>${selectedRating ? ratingLabels[selectedRating - 1] : 'Choose a rating'}</strong>
+                        <strong class="rating-value">${selectedRating ? ratingLabels[selectedRating - 1] : 'Drag to rate'}</strong>
                         <span>Excellent&nbsp; 5</span>
                     </div>
                 </section>`;
         }).join('');
 
         return `
-            <article class="evaluation-option-card">
+            <article class="evaluation-option-card" aria-label="Option ${currentEvaluationOption + 1} of ${options.length}">
                 <header class="evaluation-option-header">
                     <label>
                         <span class="visually-hidden">Option name</span>
@@ -772,7 +750,11 @@ function createEvaluationMatrix(options) {
                 </header>
                 <div class="evaluation-criteria">${criteriaRows}</div>
             </article>`;
-    }).join('');
+    })() : '';
+
+    const totalCells = criteria.length * options.length;
+    const completed = savedData.evaluationData.ratings.filter(r => r.rating >= 1 && r.rating <= 5).length;
+    const progressPercent = totalCells ? (Math.min(completed, totalCells) / totalCells) * 100 : 0;
     
     let html = `
         <form class="option-adder" id="optionAdder">
@@ -784,17 +766,26 @@ function createEvaluationMatrix(options) {
         </form>
 
         ${options.length
-            ? `<div class="evaluation-options">${optionCards}</div>`
+            ? `<div class="guided-progress">
+                    <div class="guided-progress-meta">
+                        <strong>Option ${currentEvaluationOption + 1} of ${options.length}</strong>
+                        <span class="progress-text" aria-live="polite">${completed} of ${totalCells} ratings</span>
+                    </div>
+                    <div class="progress-bar" role="progressbar" aria-label="Evaluation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressPercent)}">
+                        <div class="progress-fill" style="width:${progressPercent}%"></div>
+                    </div>
+               </div>
+               <div class="evaluation-options">${optionCard}</div>
+               <div class="evaluation-page-navigation">
+                    <button type="button" class="btn" id="previousEvaluationOption" ${currentEvaluationOption === 0 ? 'disabled' : ''}>← Previous</button>
+                    <button type="button" class="btn btn-primary" id="nextEvaluationOption">${currentEvaluationOption === options.length - 1 ? 'Review results' : 'Next →'}</button>
+               </div>`
             : `<div class="evaluation-empty">
                     <h3>Start with the alternatives</h3>
                     <p>Add at least two options. Each will get its own simple rating card.</p>
                </div>`}
 
-    <div class="button-container">
-        <button type="button" id="calculateEvaluationBtn" class="btn btn-primary" ${options.length < 2 ? 'disabled' : ''}>
-            Calculate Results
-        </button>
-    </div>`;
+    `;
 
     const container = document.getElementById('evaluationMatrix');
     container.innerHTML = html;
@@ -808,10 +799,14 @@ function createEvaluationMatrix(options) {
     container.querySelectorAll('.remove-option').forEach(button => {
         button.addEventListener('click', () => removeOption(button.dataset.option));
     });
-    container.querySelectorAll('.rating-choice').forEach(button => {
-        button.addEventListener('click', () => setEvaluationRating(button));
+    container.querySelectorAll('.rating-slider').forEach(input => {
+        input.addEventListener('input', () => setEvaluationRating(input));
     });
-    container.querySelector('#calculateEvaluationBtn').addEventListener('click', calculateFinalResults);
+    container.querySelector('#previousEvaluationOption')?.addEventListener('click', () => showEvaluationOption(currentEvaluationOption - 1));
+    container.querySelector('#nextEvaluationOption')?.addEventListener('click', () => {
+        if (currentEvaluationOption < options.length - 1) showEvaluationOption(currentEvaluationOption + 1);
+        else calculateFinalResults();
+    });
     updateEvaluationProgress();
 }
 
@@ -863,8 +858,10 @@ function calculateFinalResults() {
 
     if (missingRating) {
         showStatus(`Rate ${missingRating.option} for ${missingRating.criterion} before calculating.`, 'error');
-        const missingButton = [...document.querySelectorAll('.rating-choice')].find(button =>
-            button.dataset.option === missingRating.option && button.dataset.criterion === missingRating.criterion
+        currentEvaluationOption = options.indexOf(missingRating.option);
+        createEvaluationMatrix(options);
+        const missingButton = [...document.querySelectorAll('.rating-slider')].find(input =>
+            input.dataset.option === missingRating.option && input.dataset.criterion === missingRating.criterion
         );
         missingButton?.closest('.evaluation-criterion')?.classList.add('is-incomplete');
         missingButton?.focus();
@@ -893,6 +890,7 @@ function calculateFinalResults() {
 }
 
 function displayFinalResults(results) {
+    document.body.classList.remove('guided-evaluation-active');
     const finalResultsSection = document.getElementById('finalResults');
     finalResultsSection.style.position = 'relative';  // Remove any sticky positioning
     finalResultsSection.style.display = 'block';
@@ -927,6 +925,7 @@ function displayFinalResults(results) {
 
 function navigateToStep(step) {
     if (step <= currentStep) {
+        document.body.classList.toggle('guided-evaluation-active', step === 4);
         currentStep = step;
         updateStepIndicators();
         
@@ -1278,6 +1277,7 @@ function importComparisonMatrix(file) {
 
 // Add this helper function to handle section visibility
 function showSectionForStep(step) {
+    document.body.classList.toggle('guided-evaluation-active', step === 4);
     const sections = {
         1: 'setup',
         2: 'comparison',
