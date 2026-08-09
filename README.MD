@@ -39,10 +39,11 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 
 - four-stage progress navigation uses full labels on desktop and numbered compact controls on narrow screens
 - pairwise criteria remain side by side where space permits and stack into a clear A/or/B sequence on mobile
-- comparison and evaluation share one compact, filled left-to-right slider language with five labelled positions
+- comparison and evaluation share one compact, filled left-to-right slider language with five visible positions and a restrained accent tint
 - action rows become full-width, thumb-reachable controls on small screens
 - result tables use bounded horizontal scrolling instead of shrinking controls or text
-- evaluation uses one responsive option page at a time, draggable 1–5 sliders, and a single compact progress indicator rather than a wide or infinitely scrolling matrix
+- evaluation uses one responsive option page at a time, draggable 1–5 sliders, and folds page and completion progress into the fourth workflow step rather than adding another progress panel
+- destructive option controls follow the same 44 px circular icon-button treatment as the rest of the interface
 - the detailed criteria matrix is desktop-only; mobile keeps the ranked summary and CSV export
 
 ### Accessibility
