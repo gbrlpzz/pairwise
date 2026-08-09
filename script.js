@@ -134,7 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     updateUILanguage();
 
-    document.getElementById('comparisonSlider').addEventListener('input', updateChoiceSelection);
+    document.querySelectorAll('#comparisonLevelPicker button').forEach(button => {
+        button.addEventListener('click', () => selectComparisonChoice(Number(button.dataset.value)));
+    });
     document.getElementById('optionA').addEventListener('click', () => selectComparisonChoice(0));
     document.getElementById('optionB').addEventListener('click', () => selectComparisonChoice(4));
 
@@ -330,9 +332,9 @@ function startComparison() {
 function updateChoiceSelection() {
     const slider = document.getElementById('comparisonSlider');
     const value = Number(slider.value);
-    const labels = ['Strongly left', 'Slightly left', 'Equal', 'Slightly right', 'Strongly right'];
-    slider.closest('.effort-slider').style.setProperty('--slider-fill', `${((value + 1) / 5) * 100}%`);
-    slider.setAttribute('aria-valuetext', labels[value]);
+    document.querySelectorAll('#comparisonLevelPicker button').forEach(button => {
+        button.setAttribute('aria-pressed', String(Number(button.dataset.value) === value));
+    });
     const optionA = document.getElementById('optionA');
     const optionB = document.getElementById('optionB');
     optionA.classList.toggle('selected', value < 2);
@@ -668,9 +670,9 @@ function removeOption(name) {
     createEvaluationMatrix(savedData.evaluationData.options);
 }
 
-function setEvaluationRating(input) {
-    const { criterion, option } = input.dataset;
-    const rating = Number(input.value);
+function setEvaluationRating(button) {
+    const { criterion, option } = button.dataset;
+    const rating = Number(button.dataset.rating);
     const existingRatingIndex = savedData.evaluationData.ratings.findIndex(e => 
         e.criterion === criterion && e.option === option
     );
@@ -681,11 +683,11 @@ function setEvaluationRating(input) {
     }
     saveToLocalStorage();
 
-    const criterionCard = input.closest('.evaluation-criterion');
+    const criterionCard = button.closest('.evaluation-criterion');
     criterionCard.classList.remove('is-unrated', 'is-incomplete');
-    const label = ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'][rating - 1];
-    input.closest('.effort-slider').style.setProperty('--slider-fill', `${(rating / 5) * 100}%`);
-    input.setAttribute('aria-valuetext', label);
+    criterionCard.querySelectorAll('.level-picker button').forEach(choice => {
+        choice.setAttribute('aria-pressed', String(choice === button));
+    });
     updateEvaluationProgress();
 }
 
@@ -694,7 +696,7 @@ function showEvaluationOption(index) {
     if (!options.length) return;
     currentEvaluationOption = Math.max(0, Math.min(index, options.length - 1));
     createEvaluationMatrix(options);
-    requestAnimationFrame(() => document.querySelector('.evaluation-option-card input[type="range"]')?.focus());
+    requestAnimationFrame(() => document.querySelector('.evaluation-option-card .level-picker button')?.focus());
 }
 
 function escapeHtml(value) {
@@ -726,19 +728,15 @@ function createEvaluationMatrix(options) {
                         <h4>${safeCriterion}</h4>
                         <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                     </div>
-                    <div class="effort-slider rating-effort-slider" style="--slider-fill:${((selectedRating ?? 3) / 5) * 100}%">
-                        <div class="effort-slider-track">
-                            <span class="effort-slider-fill" aria-hidden="true"></span>
-                            <div class="effort-slider-points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-                            <input type="range" class="rating-slider" min="1" max="5" step="1"
-                                   value="${selectedRating ?? 3}"
-                                   data-criterion="${safeCriterion}" data-option="${safeOption}"
-                                   aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5"
-                                   aria-valuetext="${selectedRating ? ratingLabels[selectedRating - 1] : 'Not rated'}">
-                        </div>
-                        <div class="effort-slider-labels" aria-hidden="true">
-                            <span>Poor</span><span>Fair</span><span>Good</span><span>Very good</span><span>Excellent</span>
-                        </div>
+                    <div class="level-picker rating-level-picker" role="group" aria-label="Rate ${safeOption} for ${safeCriterion}">
+                        ${ratingLabels.map((label, index) => {
+                            const rating = index + 1;
+                            return `<button type="button" class="rating-choice" data-rating="${rating}"
+                                data-criterion="${safeCriterion}" data-option="${safeOption}"
+                                aria-pressed="${selectedRating === rating}" aria-label="${rating}, ${label}">
+                                <span>${rating}</span><small>${label}</small>
+                            </button>`;
+                        }).join('')}
                     </div>
                 </section>`;
         }).join('');
@@ -791,8 +789,8 @@ function createEvaluationMatrix(options) {
     container.querySelectorAll('.remove-option').forEach(button => {
         button.addEventListener('click', () => removeOption(button.dataset.option));
     });
-    container.querySelectorAll('.rating-slider').forEach(input => {
-        input.addEventListener('input', () => setEvaluationRating(input));
+    container.querySelectorAll('.rating-choice').forEach(button => {
+        button.addEventListener('click', () => setEvaluationRating(button));
     });
     container.querySelector('#previousEvaluationOption')?.addEventListener('click', () => showEvaluationOption(currentEvaluationOption - 1));
     container.querySelector('#nextEvaluationOption')?.addEventListener('click', () => {
@@ -815,19 +813,14 @@ function updateEvaluationProgress() {
     const totalCells = window.savedElements.length * savedData.evaluationData.options.length;
     const validCount = savedData.evaluationData.ratings.filter(r => r.rating >= 1 && r.rating <= 5).length;
     const completed = Math.min(totalCells, validCount);
-    const progressPercent = totalCells > 0 ? (completed / totalCells) * 100 : 0;
-
     const options = savedData.evaluationData.options;
     const evaluationStep = document.querySelectorAll('.step')[3];
     if (!evaluationStep) return;
 
-    evaluationStep.style.setProperty('--step-progress', `${progressPercent}%`);
-    const label = evaluationStep.querySelector('span:last-child');
-    if (label) {
-        label.textContent = options.length
-            ? `Evaluate ${currentEvaluationOption + 1}/${options.length}`
-            : 'Evaluate';
-    }
+    const status = evaluationStep.querySelector('.step-copy small');
+    if (status) status.textContent = options.length
+        ? `${currentEvaluationOption + 1}/${options.length} · ${completed}/${totalCells}`
+        : 'Add options';
     evaluationStep.setAttribute('aria-label', options.length
         ? `Evaluate, option ${currentEvaluationOption + 1} of ${options.length}, ${completed} of ${totalCells} ratings complete`
         : 'Evaluate, add options to begin');
@@ -836,9 +829,8 @@ function updateEvaluationProgress() {
 function resetEvaluationStepProgress() {
     const evaluationStep = document.querySelectorAll('.step')[3];
     if (!evaluationStep) return;
-    evaluationStep.style.removeProperty('--step-progress');
-    const label = evaluationStep.querySelector('span:last-child');
-    if (label) label.textContent = 'Evaluate';
+    const status = evaluationStep.querySelector('.step-copy small');
+    if (status) status.textContent = '';
     evaluationStep.setAttribute('aria-label', 'Evaluate');
 }
 
@@ -863,8 +855,8 @@ function calculateFinalResults() {
         showStatus(`Rate ${missingRating.option} for ${missingRating.criterion} before calculating.`, 'error');
         currentEvaluationOption = options.indexOf(missingRating.option);
         createEvaluationMatrix(options);
-        const missingButton = [...document.querySelectorAll('.rating-slider')].find(input =>
-            input.dataset.option === missingRating.option && input.dataset.criterion === missingRating.criterion
+        const missingButton = [...document.querySelectorAll('.rating-choice')].find(button =>
+            button.dataset.option === missingRating.option && button.dataset.criterion === missingRating.criterion
         );
         missingButton?.closest('.evaluation-criterion')?.classList.add('is-incomplete');
         missingButton?.focus();
