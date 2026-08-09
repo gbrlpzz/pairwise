@@ -628,27 +628,42 @@ function startEvaluation() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Inline options management
+// Touch-native options management
 function addOption() {
-    const defaultNameBase = 'Option';
-    let index = savedData.evaluationData.options.length + 1;
-    let candidate = `${defaultNameBase} ${index}`;
-    while (savedData.evaluationData.options.includes(candidate)) {
-        index++;
-        candidate = `${defaultNameBase} ${index}`;
+    const input = document.getElementById('newOptionName');
+    const candidate = (input?.value || '').trim();
+    if (!candidate) {
+        showStatus('Enter a name for the option.', 'error');
+        input?.focus();
+        return;
+    }
+    if (savedData.evaluationData.options.includes(candidate)) {
+        showStatus('Each option needs a unique name.', 'error');
+        input?.select();
+        return;
     }
     savedData.evaluationData.options.push(candidate);
     saveToLocalStorage();
     createEvaluationMatrix(savedData.evaluationData.options);
+    requestAnimationFrame(() => document.getElementById('newOptionName')?.focus());
 }
 
 function renameOption(oldName, newName) {
     const trimmed = (newName || '').trim();
-    if (!trimmed) return; // ignore empty names
+    if (!trimmed) {
+        showStatus('Option names cannot be empty.', 'error');
+        createEvaluationMatrix(savedData.evaluationData.options);
+        return;
+    }
     const options = savedData.evaluationData.options;
     const idx = options.indexOf(oldName);
     if (idx === -1) return;
-    if (options.includes(trimmed)) return; // avoid duplicates
+    if (trimmed !== oldName && options.includes(trimmed)) {
+        showStatus('Each option needs a unique name.', 'error');
+        createEvaluationMatrix(savedData.evaluationData.options);
+        return;
+    }
+    if (trimmed === oldName) return;
     options[idx] = trimmed;
     // migrate ratings
     savedData.evaluationData.ratings.forEach(r => {
@@ -669,149 +684,135 @@ function removeOption(name) {
     createEvaluationMatrix(savedData.evaluationData.options);
 }
 
-function handleRatingChange(input) {
-    const criterion = input.dataset.criterion;
-    const option = input.dataset.option;
-    const rating = parseFloat(input.value);
-    
-    // Update the rating in savedData
+function setEvaluationRating(button) {
+    const { criterion, option } = button.dataset;
+    const rating = Number(button.dataset.rating);
     const existingRatingIndex = savedData.evaluationData.ratings.findIndex(e => 
         e.criterion === criterion && e.option === option
     );
-    
-    if (input.value === '') {
-        input.classList.add('is-invalid');
-        input.classList.remove('is-valid');
-        if (existingRatingIndex !== -1) {
-            // Remove invalid rating
-            savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
-        }
-    } else if (!isNaN(rating)) {
-        if (existingRatingIndex !== -1) {
-            savedData.evaluationData.ratings[existingRatingIndex].rating = rating;
-        } else {
-            savedData.evaluationData.ratings.push({
-                criterion,
-                option,
-                rating
-            });
-        }
-        
-        input.classList.toggle('is-valid', rating >= 1 && rating <= 5);
-        input.classList.toggle('is-invalid', rating < 1 || rating > 5);
+    if (existingRatingIndex !== -1) {
+        savedData.evaluationData.ratings[existingRatingIndex].rating = rating;
     } else {
-        input.classList.add('is-invalid');
-        input.classList.remove('is-valid');
-        if (existingRatingIndex !== -1) {
-            // Remove invalid rating
-            savedData.evaluationData.ratings.splice(existingRatingIndex, 1);
-        }
+        savedData.evaluationData.ratings.push({ criterion, option, rating });
     }
-    
     saveToLocalStorage();
+
+    const criterionCard = button.closest('.evaluation-criterion');
+    criterionCard.querySelectorAll('.rating-choice').forEach(choice => {
+        const selected = choice === button;
+        choice.classList.toggle('is-selected', selected);
+        choice.setAttribute('aria-pressed', String(selected));
+    });
+    criterionCard.classList.remove('is-unrated', 'is-incomplete');
+    criterionCard.querySelector('.rating-caption strong').textContent =
+        ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'][rating - 1];
     updateEvaluationProgress();
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
 function createEvaluationMatrix(options) {
     const criteria = window.savedElements;
     const weights = calculateWeights();
+    const ratingLabels = ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+    const optionCards = options.map(option => {
+        const safeOption = escapeHtml(option);
+        const criteriaRows = criteria.map((criterion, i) => {
+            const savedRating = savedData.evaluationData.ratings.find(e =>
+                e.criterion === criterion && e.option === option
+            );
+            const selectedRating = savedRating?.rating;
+            const safeCriterion = escapeHtml(criterion);
+            const choices = ratingLabels.map((label, index) => {
+                const rating = index + 1;
+                const selected = selectedRating === rating;
+                return `
+                    <button type="button"
+                            class="rating-choice${selected ? ' is-selected' : ''}"
+                            data-criterion="${safeCriterion}"
+                            data-option="${safeOption}"
+                            data-rating="${rating}"
+                            aria-pressed="${selected}"
+                            aria-label="${safeOption}: ${safeCriterion}, ${rating} — ${label}">
+                        ${rating}
+                    </button>`;
+            }).join('');
+
+            return `
+                <section class="evaluation-criterion${selectedRating ? '' : ' is-unrated'}">
+                    <div class="criterion-heading">
+                        <h4>${safeCriterion}</h4>
+                        <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="rating-control" role="group" aria-label="Rate ${safeOption} for ${safeCriterion}">
+                        ${choices}
+                    </div>
+                    <div class="rating-caption" aria-live="polite">
+                        <span>1&nbsp; Poor</span>
+                        <strong>${selectedRating ? ratingLabels[selectedRating - 1] : 'Choose a rating'}</strong>
+                        <span>Excellent&nbsp; 5</span>
+                    </div>
+                </section>`;
+        }).join('');
+
+        return `
+            <article class="evaluation-option-card">
+                <header class="evaluation-option-header">
+                    <label>
+                        <span class="visually-hidden">Option name</span>
+                        <input class="option-name-input" value="${safeOption}" data-original-name="${safeOption}" aria-label="Rename ${safeOption}">
+                    </label>
+                    <button type="button" class="btn btn-icon remove-option" data-option="${safeOption}" aria-label="Remove ${safeOption}">×</button>
+                </header>
+                <div class="evaluation-criteria">${criteriaRows}</div>
+            </article>`;
+    }).join('');
     
     let html = `
-        <div class="rating-help">
-            <h4>Rating Guide</h4>
-            <p>Rate how well each option performs for each criterion:</p>
-            <div class="rating-scale">
-                <div class="rating-point">
-                    <strong>1</strong>
-                    <span>Poor</span>
-                </div>
-                <div class="rating-point">
-                    <strong>2</strong>
-                    <span>Fair</span>
-                </div>
-                <div class="rating-point">
-                    <strong>3</strong>
-                    <span>Good</span>
-                </div>
-                <div class="rating-point">
-                    <strong>4</strong>
-                    <span>Very Good</span>
-                </div>
-                <div class="rating-point">
-                    <strong>5</strong>
-                    <span>Excellent</span>
-                </div>
+        <form class="option-adder" id="optionAdder">
+            <label for="newOptionName">Add an option</label>
+            <div class="option-adder-row">
+                <input id="newOptionName" class="input-field" autocomplete="off" placeholder="e.g. Option A">
+                <button type="submit" class="btn btn-primary">Add</button>
             </div>
-        </div>
-        
-        <div class="table-wrapper">
-            <table class="evaluation-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Criteria</th>
-                        <th scope="col">Weight</th>
-                        ${options.map(opt => `
-                            <th scope=\"col\">
-                                <div class=\"option-header\">
-                                    <input class=\"option-name-input\" value=\"${opt}\" aria-label=\"Rename option ${opt}\" onblur=\"renameOption('${opt.replace(/'/g, "\\'")}', this.value)\" />
-                                    <button type=\"button\" class=\"btn btn-icon remove-option\" aria-label=\"Remove ${opt}\" onclick=\"removeOption('${opt.replace(/'/g, "\\'")}')\">×</button>
-                                </div>
-                            </th>
-                        `).join('')}
-                        <th scope="col" class="add-option-col">
-                            <button type="button" class="btn btn-primary btn-small" onclick="addOption()" aria-label="Add option">+ Add</button>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>`;
+        </form>
 
-    criteria.forEach((criterion, i) => {
-        html += `
-            <tr>
-                <th scope="row">
-                    ${criterion}
-                </th>
-                <td>
-                    <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
-                </td>
-                ${options.map(opt => {
-                    const savedRating = savedData.evaluationData.ratings.find(e => 
-                        e.criterion === criterion && e.option === opt
-                    );
-                    const value = savedRating ? savedRating.rating : '';
-                    
-                    return `
-                        <td>
-                            <input type="number"
-                                   min="1"
-                                   max="5"
-                                   step="0.5"
-                                   class="rating-input"
-                                   data-criterion="${criterion}"
-                                   data-option="${opt}"
-                                   value="${value}"
-                                   oninput="handleRatingChange(this)"
-                                   placeholder="1-5"
-                                   required>
-                        </td>
-                    `;
-                }).join('')}
-                <td></td>
-            </tr>`;
-    });
-
-    html += `
-        </tbody>
-    </table>
-    </div>
+        ${options.length
+            ? `<div class="evaluation-options">${optionCards}</div>`
+            : `<div class="evaluation-empty">
+                    <h3>Start with the alternatives</h3>
+                    <p>Add at least two options. Each will get its own simple rating card.</p>
+               </div>`}
 
     <div class="button-container">
-        <button type="button" onclick="calculateFinalResults()" class="btn btn-primary">
+        <button type="button" id="calculateEvaluationBtn" class="btn btn-primary" ${options.length < 2 ? 'disabled' : ''}>
             Calculate Results
         </button>
     </div>`;
 
-    document.getElementById('evaluationMatrix').innerHTML = html;
+    const container = document.getElementById('evaluationMatrix');
+    container.innerHTML = html;
+    container.querySelector('#optionAdder').addEventListener('submit', event => {
+        event.preventDefault();
+        addOption();
+    });
+    container.querySelectorAll('.option-name-input').forEach(input => {
+        input.addEventListener('change', () => renameOption(input.dataset.originalName, input.value));
+    });
+    container.querySelectorAll('.remove-option').forEach(button => {
+        button.addEventListener('click', () => removeOption(button.dataset.option));
+    });
+    container.querySelectorAll('.rating-choice').forEach(button => {
+        button.addEventListener('click', () => setEvaluationRating(button));
+    });
+    container.querySelector('#calculateEvaluationBtn').addEventListener('click', calculateFinalResults);
     updateEvaluationProgress();
 }
 
@@ -838,7 +839,9 @@ function updateEvaluationProgress() {
         progressFill.style.width = `${progressPercent}%`;
         const progressBar = progressFill.parentElement;
         progressBar.setAttribute('aria-valuenow', String(Math.round(progressPercent)));
-        progressText.textContent = `${completed}/${totalCells} cells completed`;
+        progressText.textContent = totalCells > 0
+            ? `${completed} of ${totalCells} ratings complete`
+            : 'Add options to begin';
     }
 }
 
@@ -847,23 +850,25 @@ function calculateFinalResults() {
     const criteria = window.savedElements;
     const weights = calculateWeights();
 
-    // Validate all inputs
-    const inputs = document.querySelectorAll('.rating-input');
-    let allValid = true;
-    inputs.forEach(input => {
-        const value = parseFloat(input.value);
-        const na = input.parentElement.querySelector('.na-toggle input')?.checked === true;
-        if (!na && (!value || value < 1 || value > 5)) {
-            input.classList.add('is-invalid');
-            allValid = false;
-        } else {
-            input.classList.remove('is-invalid');
-        }
-    });
+    if (options.length < 2) {
+        showStatus('Add at least two options before calculating results.', 'error');
+        document.getElementById('newOptionName')?.focus();
+        return;
+    }
 
-    if (!allValid) {
-        showStatus('Complete every rating with a value from 1 to 5.', 'error');
-        document.querySelector('.rating-input.is-invalid')?.focus();
+    const missingRating = options.flatMap(option =>
+        criteria.map(criterion => ({ option, criterion }))
+    ).find(({ option, criterion }) => !savedData.evaluationData.ratings.some(r =>
+        r.option === option && r.criterion === criterion && r.rating >= 1 && r.rating <= 5
+    ));
+
+    if (missingRating) {
+        showStatus(`Rate ${missingRating.option} for ${missingRating.criterion} before calculating.`, 'error');
+        const missingButton = [...document.querySelectorAll('.rating-choice')].find(button =>
+            button.dataset.option === missingRating.option && button.dataset.criterion === missingRating.criterion
+        );
+        missingButton?.closest('.evaluation-criterion')?.classList.add('is-incomplete');
+        missingButton?.focus();
         return;
     }
 
