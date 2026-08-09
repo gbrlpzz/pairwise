@@ -163,8 +163,12 @@
                             <span id="preferenceLabelB">Option B</span>
                         </div>
                         <div class="effort-slider" style="--slider-fill: 50%">
-                            <input type="range" id="comparisonSlider" min="0" max="4" step="1" value="2"
-                                aria-label="Relative importance" aria-valuetext="Equal">
+                            <div class="effort-slider-track">
+                                <span class="effort-slider-fill" aria-hidden="true"></span>
+                                <div class="effort-slider-points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                                <input type="range" id="comparisonSlider" min="0" max="4" step="1" value="2"
+                                    aria-label="Relative importance" aria-valuetext="Equal">
+                            </div>
                             <div class="effort-slider-labels" aria-hidden="true">
                                 <span>Strongly</span><span>Slightly</span><span>Equal</span><span>Slightly</span><span>Strongly</span>
                             </div>
