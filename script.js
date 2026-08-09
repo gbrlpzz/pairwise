@@ -201,10 +201,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const elementsInputEl = document.getElementById('elements');
     elementsInputEl.addEventListener('input', function() {
-        validateElements(this);
-        updateWorkloadPreview();
+        updateCriteriaState();
     });
-    updateWorkloadPreview();
+    elementsInputEl.addEventListener('keydown', (event) => {
+        const startButton = document.getElementById('startComparisonBtn');
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !startButton.disabled) {
+            event.preventDefault();
+            startComparison();
+        }
+    });
+    updateCriteriaState();
 
     // Enable keyboard navigation and autosave
     setupKeyboardNavigation();
@@ -218,8 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUILanguage();
             const example = ['Price', 'Quality', 'Speed', 'Reliability'];
             const input = document.getElementById('elements');
-            input.value = example.join(', ');
-            updateWorkloadPreview();
+            input.value = example.join('\n');
+            updateCriteriaState();
             startComparison();
         });
     }
@@ -235,11 +241,13 @@ function updateUILanguage() {
     if (selectedType === 'importance') {
         comparisonInput.style.display = 'block';
         matrixInput.style.display = 'none';
-        document.getElementById('startComparisonBtn').textContent = 'Start Comparison';
+        updateCriteriaState();
     } else {
         comparisonInput.style.display = 'none';
         matrixInput.style.display = 'block';
-        document.getElementById('startComparisonBtn').textContent = 'Skip to Evaluation';
+        const startButton = document.getElementById('startComparisonBtn');
+        startButton.innerHTML = 'Continue to evaluation <span aria-hidden="true">→</span>';
+        startButton.disabled = !(document.getElementById('matrixFileInput').files.length || (window.savedMatrix && window.savedElements));
     }
 }
 
@@ -271,13 +279,14 @@ function startComparison() {
     const selectedType = document.querySelector('input[name="comparisonType"]:checked').value;
     
     if (selectedType === 'importance') {
-        const elementsInput = document.getElementById('elements').value;
-        elements = elementsInput.split(',')
-            .map(e => e.trim())
-            .filter(e => e.length > 0);
+        const criteriaState = parseCriteria(document.getElementById('elements').value);
+        elements = criteriaState.items;
 
-        if (elements.length < 2) {
-            showStatus('Enter at least two criteria, separated by commas.', 'error');
+        if (!criteriaState.valid) {
+            const message = criteriaState.duplicates.length
+                ? `Remove duplicate criteria: ${criteriaState.duplicates.join(', ')}.`
+                : 'Enter at least two criteria before continuing.';
+            showStatus(message, 'error');
             document.getElementById('elements').focus();
             return;
         }
@@ -438,7 +447,7 @@ function showResults() {
             </ul>
         </div>
 
-        <div id="details-tab" class="detailed-results" role="tabpanel" style="display: none;">
+        <div id="details-tab" class="detailed-results" role="tabpanel" hidden>
             <div class="results-wrapper">
                 <table class="result-table">
                     <caption class="visually-hidden">Pairwise comparison matrix and calculated scores</caption>
@@ -478,6 +487,20 @@ function showResults() {
 
     // Re-attach event listener for download button
     document.getElementById('downloadCsvBtn').addEventListener('click', downloadCSV);
+    const tabs = Array.from(document.querySelectorAll('.tab-button'));
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('keydown', (event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            let nextIndex = index;
+            if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+            if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+            if (event.key === 'Home') nextIndex = 0;
+            if (event.key === 'End') nextIndex = tabs.length - 1;
+            tabs[nextIndex].click();
+            tabs[nextIndex].focus();
+        });
+    });
 
     // Update step indicator to show third step completion
     const stepIndicator = document.querySelector('.step-indicator');
@@ -495,10 +518,8 @@ function showResultsTab(tabName, trigger) {
     trigger.setAttribute('aria-selected', 'true');
 
     // Show/hide content
-    document.getElementById('summary-tab').style.display = 
-        tabName === 'summary' ? 'block' : 'none';
-    document.getElementById('details-tab').style.display = 
-        tabName === 'details' ? 'block' : 'none';
+    document.getElementById('summary-tab').hidden = tabName !== 'summary';
+    document.getElementById('details-tab').hidden = tabName !== 'details';
 }
 
 function downloadCSV() {
@@ -586,7 +607,7 @@ function startEvaluation() {
         const progress = document.createElement('div');
         progress.className = 'progress-container evaluation-progress';
         progress.innerHTML = `
-            <div class="progress-bar">
+            <div class="progress-bar" role="progressbar" aria-label="Evaluation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="progress-fill"></div>
             </div>
             <div class="progress-text" aria-live="polite"></div>
@@ -989,6 +1010,7 @@ function showCurrentComparison() {
     
     if (progressFill && progressText) {
         progressFill.style.width = `${progressPercent}%`;
+        progressFill.parentElement.setAttribute('aria-valuenow', String(Math.round(progressPercent)));
         progressText.textContent = `${currentComparison}/${comparisons.length} comparisons completed`;
     }
 }
@@ -1052,6 +1074,7 @@ function updateStepIndicators() {
     steps.forEach((step, index) => {
         step.classList.remove('active', 'completed', 'future');
         step.removeAttribute('aria-current');
+        step.disabled = index + 1 > currentStep;
         
         if (index + 1 === currentStep) {
             step.classList.add('active');
@@ -1066,10 +1089,6 @@ function updateStepIndicators() {
         }
     });
 
-    // If we're on the results page, mark the third step as completed
-    if (currentStep === 3 || currentStep === 4) {
-        steps[2].classList.add('completed');
-    }
 }
 
 function saveToLocalStorage() {
@@ -1300,39 +1319,6 @@ function updateComparisonProgress() {
     }
 }
 
-// Add input validation and real-time feedback
-function validateElements(input) {
-    const elements = input.value.split(',')
-        .map(e => e.trim())
-        .filter(e => e.length > 0);
-    
-    const helpText = input.parentElement.querySelector('.input-help') || 
-        document.createElement('p');
-    helpText.className = 'input-help';
-    
-    if (elements.length < 2) {
-        helpText.textContent = 'Please enter at least 2 items separated by commas';
-        helpText.classList.add('validation-error');
-        helpText.classList.remove('validation-success');
-        input.classList.add('is-invalid');
-        input.classList.remove('is-valid');
-        input.setAttribute('aria-invalid', 'true');
-        return false;
-    } else {
-        helpText.textContent = `${elements.length} items entered`;
-        helpText.classList.add('validation-success');
-        helpText.classList.remove('validation-error');
-        input.classList.add('is-valid');
-        input.classList.remove('is-invalid');
-        input.removeAttribute('aria-invalid');
-        return true;
-    }
-    
-    if (!input.parentElement.querySelector('.input-help')) {
-        input.parentElement.appendChild(helpText);
-    }
-}
-
 function updateProgressBar() {
     const progressFill = document.querySelector('.progress-fill');
     const progressText = document.querySelector('.progress-text');
@@ -1477,20 +1463,62 @@ function downloadFinalResults(results) {
     }, 500);
 }
 
-// Helper: update workload preview under the criteria input
-function updateWorkloadPreview() {
+function parseCriteria(value) {
+    const rawItems = value
+        .split(/[,\n]+/)
+        .map(item => item.trim())
+        .filter(Boolean);
+    const seen = new Map();
+    const items = [];
+    const duplicates = [];
+
+    rawItems.forEach(item => {
+        const key = item.toLocaleLowerCase();
+        if (seen.has(key)) {
+            if (!duplicates.some(duplicate => duplicate.toLocaleLowerCase() === key)) {
+                duplicates.push(item);
+            }
+            return;
+        }
+        seen.set(key, item);
+        items.push(item);
+    });
+
+    return {
+        items,
+        duplicates,
+        valid: items.length >= 2 && duplicates.length === 0,
+        comparisonsCount: items.length > 1 ? (items.length * (items.length - 1)) / 2 : 0,
+    };
+}
+
+function updateCriteriaState() {
     const input = document.getElementById('elements');
     if (!input) return;
-    const items = input.value.split(',').map(s => s.trim()).filter(Boolean);
-    const n = items.length;
-    const comparisonsCount = n > 1 ? (n * (n - 1)) / 2 : 0;
-    const el = document.getElementById('workloadPreview');
-    if (el) {
-        if (comparisonsCount > 0) {
-            el.textContent = `You will make ${comparisonsCount} pairwise comparisons.`;
-        } else {
-            el.textContent = '';
-        }
+    const state = parseCriteria(input.value);
+    const preview = document.getElementById('workloadPreview');
+    const startButton = document.getElementById('startComparisonBtn');
+    const isImportanceMode = document.querySelector('input[name="comparisonType"]:checked')?.value === 'importance';
+
+    input.classList.toggle('is-invalid', input.value.trim().length > 0 && !state.valid);
+    input.classList.toggle('is-valid', state.valid);
+    input.setAttribute('aria-invalid', String(input.value.trim().length > 0 && !state.valid));
+
+    preview.classList.toggle('validation-error', state.duplicates.length > 0);
+    preview.classList.toggle('validation-success', state.valid);
+    if (state.duplicates.length) {
+        preview.textContent = `Duplicate criteria: ${state.duplicates.join(', ')}.`;
+    } else if (state.items.length === 0) {
+        preview.textContent = 'Add at least two criteria to begin.';
+    } else if (state.items.length === 1) {
+        preview.textContent = 'Add one more criterion to begin.';
+    } else {
+        preview.textContent = `${state.items.length} criteria · ${state.comparisonsCount} comparisons`;
+    }
+
+    if (isImportanceMode) {
+        startButton.innerHTML = 'Start comparison <span aria-hidden="true">→</span>';
+        startButton.disabled = !state.valid;
     }
 }
 
