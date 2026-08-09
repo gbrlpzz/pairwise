@@ -1,81 +1,114 @@
-# Pairwise Comparison Tool
+# Pairwise
 
-A web-based tool for making complex decisions using the Analytic Hierarchy Process (AHP) through pairwise comparisons.
+A private, browser-based decision tool for Analytic Hierarchy Process (AHP) and pairwise comparison. Pairwise turns a complex choice into a guided sequence: define criteria, compare them two at a time, inspect the resulting weights, and evaluate candidate options.
 
-## Privacy-First Decision Making
+Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 
-- **100% Client-Side**: All calculations happen in your browser
-- **Zero Data Collection**: Your decisions stay completely private
-- **No Account Required**: Just open and use
-- **Local Storage Only**: Data saved locally in your browser
-- **No External Dependencies**
+## Product principles
 
-## About
+- **Local by default.** Calculations and saved progress remain in the browser.
+- **No account or tracking.** The app has no backend, analytics script, or user identity.
+- **Progressive decisions.** Each screen asks for one kind of input and makes the next action explicit.
+- **System before style.** Controls follow familiar platform conventions before adding visual character.
+- **Accessible at every size.** The same workflow works with touch, mouse, keyboard, zoom, and assistive technology.
 
-This tool helps you make better decisions by breaking down complex choices into simple comparisons. It uses the Analytic Hierarchy Process (AHP), a structured method for organizing and analyzing complex decisions.
+## The workflow
 
-### How It Works
+1. **Setup** — enter the criteria that matter or import a previously exported matrix.
+2. **Compare** — choose the relative importance of each pair on a five-point scale.
+3. **Results** — inspect criterion weights in a ranked summary or detailed matrix and export the data.
+4. **Evaluate** — add candidate options, score each from 1–5 against every criterion, and calculate the final ranking.
 
-The process happens in 4 steps:
+The app saves in-progress work to `localStorage`. Starting over removes decision data while preserving the selected appearance.
 
-1. **Setup**: Enter the criteria that matter for your decision (e.g., Price, Quality, Speed)
+## Interface system
 
-2. **Compare**: Make pairwise comparisons between criteria to establish their relative importance
-   - Compare two criteria at a time
-   - Use a slider to indicate which is more important and by how much
-   - The tool will guide you through all necessary comparisons
+The 2026 interface overhaul rebuilt the presentation layer around platform-native expectations, using Apple Human Interface Guidelines and accessibility guidance as the baseline rather than as decorative inspiration.
 
-3. **Results**: View the weighted importance of each criterion
-   - See how your comparisons translate into percentage weights
-   - Download the comparison matrix for future use
+### Foundations
 
-4. **Evaluate**: Rate your options against each criterion
-   - Enter the options you're considering
-   - Rate how well each option performs for each criterion
-   - Get a final weighted score that accounts for both criteria importance and option performance
+- system font stack with Dynamic-Type-like responsive sizing
+- 17 px default body text and at least 44 px interactive targets
+- semantic buttons for navigation, tabs, appearance, and actions
+- familiar grouped controls, filled primary actions, and restrained secondary actions
+- content hierarchy based on title, explanation, control group, and next action
+- a single vertical workspace that remains legible at high zoom
 
-### Perfect For
+### Responsive behavior
 
-- Product Decisions
-- Career Choices
-- Feature Prioritization
-- Investment Decisions
-- Any complex choice with multiple factors
+- four-stage progress navigation uses full labels on desktop and numbered compact controls on narrow screens
+- pairwise options remain side by side where space permits and stack into a clear A/or/B sequence on mobile
+- the five-value comparison control becomes a touch-friendly vertical choice list on mobile
+- action rows become full-width, thumb-reachable controls on small screens
+- result and evaluation tables use bounded horizontal scrolling instead of shrinking controls or text
+- the first evaluation column remains visible while wide option matrices scroll
 
-### The Math Behind It
+### Accessibility
 
-1. **Pairwise Comparison Matrix**: Your comparisons create a matrix where:
-   - Each element represents the relative importance of criterion i compared to criterion j
-   - If criterion A is 3 times more important than B, then B is 1/3 as important as A
-   - The diagonal is always 1 (each criterion compared to itself)
+- visible `:focus-visible` rings with system-blue semantics
+- correctly labelled progress, radio groups, tabs, step navigation, file input, and theme control
+- inline error status and focus recovery for invalid or incomplete tasks
+- persistent labels and instructions; meaning never depends on placeholder text alone
+- selected, invalid, completed, and current states are exposed semantically as well as visually
+- `prefers-reduced-motion` removes non-essential animation and smooth scrolling
+- `prefers-contrast: more` strengthens separators, labels, and surface boundaries
+- light and dark appearances use semantic color tokens and respect the initial system preference
+- tables retain explicit row/column structure and keyboard-accessible inputs
+- print mode removes controls and preserves readable results
 
-2. **Priority Vector**: The final weights are calculated by:
-   - Normalizing the matrix (dividing each element by its column sum)
-   - Taking the average of each row in the normalized matrix
+### Visual character
 
-3. **Final Scores**: Options are scored by:
-   - Multiplying each rating by the criterion's weight
-   - Summing these weighted ratings for each option
+Pairwise keeps its original lime accent and grid mark. They now sit on top of standard control behavior, neutral system surfaces, restrained depth, and consistent corner geometry. Animation is limited to short state transitions and subtle press feedback; no content depends on motion.
 
-## Usage
+## Decision model
 
-1. Visit the tool at https://compare.gbrlpzz.com/
-2. Choose between starting a new comparison or uploading an existing matrix
-3. Follow the step-by-step process
-4. Download your results or continue to evaluate options
+For criteria \(i\) and \(j\), each comparison creates reciprocal matrix entries:
+
+- much more important: `5` and `1/5`
+- more important: `3` and `1/3`
+- equal: `1` and `1`
+
+The diagonal remains `1`. Criterion weights are derived from normalized row totals. Candidate scores are the sum of each 1–5 rating multiplied by its criterion weight.
+
+This implementation is intended as a practical decision aid. For research or high-stakes applications, validate the chosen AHP method and consistency requirements independently.
+
+## Data and exports
+
+- comparison progress is stored under `pairwiseData` in browser `localStorage`
+- imported matrices are parsed locally from CSV
+- comparison matrices and final rankings are generated as local CSV downloads
+- no decision content is sent over the network
 
 ## Development
 
-The tool is built with vanilla JavaScript and uses modern CSS features. To run locally:
+Pairwise is intentionally dependency-free: plain HTML, CSS, and JavaScript with no build step.
 
-1. Clone the repository
-2. Open `index.html` in a web browser
-3. No build process or dependencies required
+```bash
+git clone https://github.com/gbrlpzz/pairwise.git
+cd pairwise
+python3 -m http.server 4173
+```
 
-## Contributing
+Open `http://localhost:4173`. Serving over HTTP is preferable to opening `index.html` directly because it matches production browser behavior.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+### Verification
+
+Before publishing changes:
+
+```bash
+node --check script.js
+git diff --check
+```
+
+Then exercise the following at desktop and mobile widths:
+
+1. create a comparison from the example
+2. complete all pairwise choices with keyboard and pointer input
+3. switch result tabs and export the matrix
+4. add, rename, and remove evaluation options
+5. complete ratings and export final rankings
+6. verify light/dark appearance, reduced motion, 200% zoom, and horizontal table scrolling
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT. See [LICENSE](LICENSE).
