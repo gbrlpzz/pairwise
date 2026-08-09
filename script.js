@@ -331,7 +331,7 @@ function updateChoiceSelection() {
     const slider = document.getElementById('comparisonSlider');
     const value = Number(slider.value);
     const labels = ['Strongly left', 'Slightly left', 'Equal', 'Slightly right', 'Strongly right'];
-    slider.closest('.effort-slider').style.setProperty('--slider-fill', `${(value / 4) * 100}%`);
+    slider.closest('.effort-slider').style.setProperty('--slider-fill', `${((value + 1) / 5) * 100}%`);
     slider.setAttribute('aria-valuetext', labels[value]);
     const optionA = document.getElementById('optionA');
     const optionB = document.getElementById('optionB');
@@ -727,11 +727,15 @@ function createEvaluationMatrix(options) {
                         <span class="weight-badge">${(weights[i] * 100).toFixed(1)}%</span>
                     </div>
                     <div class="effort-slider rating-effort-slider" style="--slider-fill:${((selectedRating ?? 3) / 5) * 100}%">
-                        <input type="range" class="rating-slider" min="1" max="5" step="1"
-                               value="${selectedRating ?? 3}"
-                               data-criterion="${safeCriterion}" data-option="${safeOption}"
-                               aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5"
-                               aria-valuetext="${selectedRating ? ratingLabels[selectedRating - 1] : 'Not rated'}">
+                        <div class="effort-slider-track">
+                            <span class="effort-slider-fill" aria-hidden="true"></span>
+                            <div class="effort-slider-points" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                            <input type="range" class="rating-slider" min="1" max="5" step="1"
+                                   value="${selectedRating ?? 3}"
+                                   data-criterion="${safeCriterion}" data-option="${safeOption}"
+                                   aria-label="Rate ${safeOption} for ${safeCriterion} from 1 to 5"
+                                   aria-valuetext="${selectedRating ? ratingLabels[selectedRating - 1] : 'Not rated'}">
+                        </div>
                         <div class="effort-slider-labels" aria-hidden="true">
                             <span>Poor</span><span>Fair</span><span>Good</span><span>Very good</span><span>Excellent</span>
                         </div>
@@ -752,10 +756,6 @@ function createEvaluationMatrix(options) {
             </article>`;
     })() : '';
 
-    const totalCells = criteria.length * options.length;
-    const completed = savedData.evaluationData.ratings.filter(r => r.rating >= 1 && r.rating <= 5).length;
-    const progressPercent = totalCells ? (Math.min(completed, totalCells) / totalCells) * 100 : 0;
-    
     const optionAdder = `
         <form class="option-adder${options.length ? ' is-compact' : ''}" id="optionAdder">
             <label for="newOptionName">${options.length ? 'Add another option' : 'Add an option'}</label>
@@ -766,16 +766,7 @@ function createEvaluationMatrix(options) {
         </form>`;
 
     let html = options.length
-            ? `<div class="guided-progress">
-                    <div class="guided-progress-meta">
-                        <strong>Option ${currentEvaluationOption + 1} of ${options.length}</strong>
-                        <span class="progress-text" aria-live="polite">${completed} of ${totalCells} ratings</span>
-                    </div>
-                    <div class="progress-bar" role="progressbar" aria-label="Evaluation progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progressPercent)}">
-                        <div class="progress-fill" style="width:${progressPercent}%"></div>
-                    </div>
-               </div>
-               <div class="evaluation-options">${optionCard}</div>
+            ? `<div class="evaluation-options">${optionCard}</div>
                <div class="evaluation-page-navigation">
                     <button type="button" class="btn" id="previousEvaluationOption" ${currentEvaluationOption === 0 ? 'disabled' : ''}>← Previous</button>
                     <button type="button" class="btn btn-primary" id="nextEvaluationOption">${currentEvaluationOption === options.length - 1 ? 'Review results' : 'Next →'}</button>
@@ -789,6 +780,7 @@ function createEvaluationMatrix(options) {
 
     const container = document.getElementById('evaluationMatrix');
     container.innerHTML = html;
+    updateEvaluationProgress();
     container.querySelector('#optionAdder').addEventListener('submit', event => {
         event.preventDefault();
         addOption();
@@ -807,7 +799,6 @@ function createEvaluationMatrix(options) {
         if (currentEvaluationOption < options.length - 1) showEvaluationOption(currentEvaluationOption + 1);
         else calculateFinalResults();
     });
-    updateEvaluationProgress();
 }
 
 function calculateWeights() {
@@ -826,17 +817,29 @@ function updateEvaluationProgress() {
     const completed = Math.min(totalCells, validCount);
     const progressPercent = totalCells > 0 ? (completed / totalCells) * 100 : 0;
 
-    const container = document.getElementById('evaluation');
-    const progressFill = container.querySelector('.progress-fill');
-    const progressText = container.querySelector('.progress-text');
-    if (progressFill && progressText) {
-        progressFill.style.width = `${progressPercent}%`;
-        const progressBar = progressFill.parentElement;
-        progressBar.setAttribute('aria-valuenow', String(Math.round(progressPercent)));
-        progressText.textContent = totalCells > 0
-            ? `${completed} of ${totalCells} ratings complete`
-            : 'Add options to begin';
+    const options = savedData.evaluationData.options;
+    const evaluationStep = document.querySelectorAll('.step')[3];
+    if (!evaluationStep) return;
+
+    evaluationStep.style.setProperty('--step-progress', `${progressPercent}%`);
+    const label = evaluationStep.querySelector('span:last-child');
+    if (label) {
+        label.textContent = options.length
+            ? `Evaluate ${currentEvaluationOption + 1}/${options.length}`
+            : 'Evaluate';
     }
+    evaluationStep.setAttribute('aria-label', options.length
+        ? `Evaluate, option ${currentEvaluationOption + 1} of ${options.length}, ${completed} of ${totalCells} ratings complete`
+        : 'Evaluate, add options to begin');
+}
+
+function resetEvaluationStepProgress() {
+    const evaluationStep = document.querySelectorAll('.step')[3];
+    if (!evaluationStep) return;
+    evaluationStep.style.removeProperty('--step-progress');
+    const label = evaluationStep.querySelector('span:last-child');
+    if (label) label.textContent = 'Evaluate';
+    evaluationStep.setAttribute('aria-label', 'Evaluate');
 }
 
 function calculateFinalResults() {
@@ -891,6 +894,7 @@ function calculateFinalResults() {
 
 function displayFinalResults(results) {
     document.body.classList.remove('guided-evaluation-active');
+    resetEvaluationStepProgress();
     const finalResultsSection = document.getElementById('finalResults');
     finalResultsSection.style.position = 'relative';  // Remove any sticky positioning
     finalResultsSection.style.display = 'block';
@@ -926,6 +930,7 @@ function displayFinalResults(results) {
 function navigateToStep(step) {
     if (step <= currentStep) {
         document.body.classList.toggle('guided-evaluation-active', step === 4);
+        if (step !== 4) resetEvaluationStepProgress();
         currentStep = step;
         updateStepIndicators();
         
@@ -1277,6 +1282,7 @@ function importComparisonMatrix(file) {
 // Add this helper function to handle section visibility
 function showSectionForStep(step) {
     document.body.classList.toggle('guided-evaluation-active', step === 4);
+    if (step !== 4) resetEvaluationStepProgress();
     const sections = {
         1: 'setup',
         2: 'comparison',
