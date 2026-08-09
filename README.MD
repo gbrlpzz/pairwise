@@ -15,9 +15,9 @@ Live at [compare.gbrlpzz.com](https://compare.gbrlpzz.com/).
 ## The workflow
 
 1. **Setup** — enter one criterion per line (commas also work) or import a previously exported matrix. Pairwise rejects duplicate names and previews the exact number of comparisons before starting.
-2. **Compare** — tap either criterion or drag the same filled five-position control used throughout the app.
+2. **Compare** — tap either criterion or choose one of five clearly labelled preference levels.
 3. **Results** — inspect criterion weights in a ranked summary or detailed matrix and export the data.
-4. **Evaluate** — move through one candidate option at a time, drag a 1–5 slider for each criterion, and calculate the final ranking from the guided flow.
+4. **Evaluate** — move through one candidate option at a time, select a 1–5 level for each criterion, and calculate the final ranking from the guided flow.
 
 The app saves in-progress work to `localStorage`. Starting over removes decision data while preserving the selected appearance.
 
@@ -39,10 +39,10 @@ The 2026 interface overhaul rebuilt the presentation layer around platform-nativ
 
 - four-stage progress navigation uses full labels on desktop and numbered compact controls on narrow screens
 - pairwise criteria remain side by side where space permits and stack into a clear A/or/B sequence on mobile
-- comparison and evaluation share one compact, filled left-to-right slider language with five visible positions and a restrained accent tint
+- comparison and evaluation share one compact five-level picker built from native buttons, avoiding browser-specific range rendering
 - action rows become full-width, thumb-reachable controls on small screens
 - result tables use bounded horizontal scrolling instead of shrinking controls or text
-- evaluation uses one responsive option page at a time, draggable 1–5 sliders, and folds page and completion progress into the fourth workflow step rather than adding another progress panel
+- evaluation uses one responsive option page at a time and folds stable page and completion text into the fourth workflow step rather than adding another progress panel or moving fill
 - destructive option controls follow the same 44 px circular icon-button treatment as the rest of the interface
 - the detailed criteria matrix is desktop-only; mobile keeps the ranked summary and CSV export
 
